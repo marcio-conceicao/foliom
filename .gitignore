@@ -1,3 +1,6 @@
+# Sensitive local sample data — must never be committed (PII in real Logseq notes).
+/data-folder-sample/
+
 # Rust build artifacts.
 /target/
 
