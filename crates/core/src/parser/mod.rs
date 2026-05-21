@@ -6,4 +6,5 @@
 //! - Stage 2 (added in a later plan): per-block CommonMark/GFM via
 //!   `pulldown-cmark` with ref extraction.
 
+pub mod ast;
 pub mod segment;

@@ -10,11 +10,13 @@ publish.workspace = true
 name = "foliom_core"
 path = "src/lib.rs"
 
-# No runtime dependencies yet.
 # Plan 02 adds the segmenter state machine (no new deps).
-# Plan 03 adds pulldown-cmark / unicode-normalization.
+# Plan 03 adds pulldown-cmark / unicode-normalization / thiserror.
 # Plan 04 adds rusqlite / blake3 / rusqlite_migration.
 [dependencies]
+pulldown-cmark = { version = "0.13", default-features = false }
+unicode-normalization = "0.1"
+thiserror = "1"
 
 # walkdir is used by the round-trip test (tests/roundtrip.rs) to enumerate
 # the sample corpus. Pinned to 2.5 per D-17.
