@@ -9,8 +9,8 @@ provides:
   - Cargo workspace at repo root with crates/core (lib) and crates/cli (bin)
   - RawBlock + RawDrawer public types in foliom_core::parser::segment
   - Stub segment() returning Vec::new() (consumed by plan 01-02)
-  - Failing ACPT-01 / PRS-07 round-trip property test against the 620-file Logseq corpus
-  - .gitattributes enforcing LF on all .md files and treating data-folder-sample/** as binary
+  - Failing ACPT-01 / PRS-07 round-trip property test (post-revision 2026-05-21 — see ERRATUM below)
+  - .gitattributes enforcing LF on all .md files and treating both data-folder-sample/** and crates/core/tests/fixtures/logseq-synthetic/** as binary
   - GitHub Actions CI matrix across ubuntu-latest, macos-latest, windows-latest
 affects: [01-02-segmenter, 01-03-parser-refs, 01-04-storage, 01-05-scanner, 01-06-indexer, 01-07-cli]
 
@@ -179,6 +179,22 @@ All artifacts present on disk; all task commits present in git history.
 - Commits: `0b00d89` (Task 1), `6501cc5` (Task 2), `4e7a9ce` (Task 3), `eb48eff` (Task 4).
 
 ---
+
+## ERRATUM (post-execution, 2026-05-21)
+
+After this plan committed, the user flagged that `data-folder-sample/Logseq/` contains PII and must never reach git history. Two mitigations were applied as a follow-up commit:
+
+1. `/data-folder-sample/` added to `.gitignore`. Verified the directory was never tracked — no history cleanup needed.
+2. The round-trip CI gate was split into:
+   - **Primary (committed):** synthetic corpus at `crates/core/tests/fixtures/logseq-synthetic/` (10 fixtures covering all PRD §6.6 patterns, zero PII) — runs in the cross-platform CI matrix.
+   - **Secondary (opt-in, gitignored):** `data-folder-sample/Logseq/` runs only when present locally; skipped silently in CI.
+
+`crates/core/tests/roundtrip.rs` now exposes two test functions (`roundtrip_byte_identical_for_synthetic_corpus` and `roundtrip_byte_identical_for_real_corpus_if_present`). Both are RED at the close of this plan (segmenter is still a stub) — Plan 02 flips them GREEN.
+
+CONTEXT.md D-08, REQUIREMENTS.md ACPT-01 / PRS-07, and the revision banners on Plans 02–07 reflect this. The original plan body above is preserved as the historical record of what shipped first.
+
+---
 *Phase: 01-headless-indexing-core*
 *Plan: 01*
 *Completed: 2026-05-21*
+*Erratum: 2026-05-21*

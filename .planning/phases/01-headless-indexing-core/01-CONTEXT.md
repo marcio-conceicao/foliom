@@ -14,7 +14,7 @@ Entregar um núcleo Rust headless que:
 4. **Reindexa incrementalmente** por `mtime`+`hash`, com comando explícito `reindex` para reconstrução total (IDX-03, IDX-04).
 5. **Preserva** block properties (`key:: value`) e Logseq drawers (`:LOGBOOK:`/`:END:`) parsed em slot estruturado por bloco, sem reformatar nem dropar (PRS-05, PRS-06).
 6. **Expõe** um CLI `foliom` com subcomandos `index`, `reindex`, `search`, `dump-tree`, `inventory` — esse último (IDX-08) gera o relatório de patterns Logseq sobre a base real, gatekeeping o sign-off do parser.
-7. **Garante** o CI gate de round-trip byte-idêntico (ACPT-01) contra todos os arquivos em `data-folder-sample/Logseq/` — ESTE TESTE É ESCRITO ANTES DE QUALQUER STORAGE / INDEXER / WATCHER, e fica green daqui em diante.
+7. **Garante** o CI gate de round-trip byte-idêntico (ACPT-01) contra o **corpus sintético committed** em `crates/core/tests/fixtures/logseq-synthetic/` (CI público, sem PII) e — opcionalmente, quando presente localmente — contra a base real `data-folder-sample/Logseq/` (gitignored, PII). ESTE TESTE É ESCRITO ANTES DE QUALQUER STORAGE / INDEXER / WATCHER e fica green daqui em diante. Ver D-08 para detalhes.
 8. **Roda** parser + scanner verdes em Linux, macOS, Windows CI (ACPT-04), com path normalization NFC + forward-slash na fronteira de storage (IDX-07).
 
 **Fora de Phase 1 (vai para phases posteriores):** servidor HTTP, renderer markdown, watcher de filesystem, write-back (byte-splice), CodeMirror, undo/redo, autocomplete, dark mode, journal navigation, packaging Tauri.
@@ -49,7 +49,11 @@ Entregar um núcleo Rust headless que:
   Phase 2 adiciona `crates/server/` (axum) sem refactor; Phase 5 adiciona `crates/desktop/` (Tauri). Recomendação direta do ARCHITECTURE.md §1.
 
 ### Reference corpus para ACPT-01
-- **D-08:** **Round-trip CI gate roda contra `data-folder-sample/Logseq/` (≈619 arquivos).** Foco em correção contra dados reais, não em volume. Performance gates (ACPT-02 cold start <2s, ACPT-03 RAM <300MB) ficam em Phase 2, quando já existe startup end-to-end mensurável. Phase 1 só precisa provar que o parser não corrompe nenhum arquivo da base que o usuário usa hoje.
+- **D-08 (revised 2026-05-21):** **Round-trip CI gate tem dois corpora.**
+  - **Primário (committed):** `crates/core/tests/fixtures/logseq-synthetic/` — 10 arquivos sintéticos pequenos, cada um isolando um padrão da §6.6 (TAB-indent, 2-space continuation com code fence, block properties, `:LOGBOOK:` drawer, `[[link]]` / `#tag` / `#[[tag composta]]`, falsos positivos `#fff`/URL/heading, `%2F` namespace, deep nesting, journal `YYYY_MM_DD.md`). Sem PII. CI matrix Linux/macOS/Windows roda contra ele.
+  - **Secundário (opt-in, never committed):** `data-folder-sample/Logseq/` no root do repo, **gitignored** porque contém PII real. Quando a pasta existe localmente, o teste `roundtrip_byte_identical_for_real_corpus_if_present` valida o segmenter contra a base real (≈620 arquivos). Em CI a pasta não existe e o teste imprime "skipping" e passa.
+  - **Por quê os dois:** o sintético garante cobertura determinística dos padrões críticos em CI público sem depender de PII; o real garante que a base que o usuário usa hoje não corrompe na primeira edição quando ele rodar localmente. Phase 1 fecha quando ambos passam (sintético em CI + real localmente).
+  - Performance gates (ACPT-02 cold start <2s, ACPT-03 RAM <300MB) continuam em Phase 2.
 
 ### Já travado pela pesquisa (não re-discutir no planner)
 - **D-09:** Linguagem: **Rust 1.85+**, edition 2024 quando disponível, MSRV declarado.
@@ -96,9 +100,10 @@ Entregar um núcleo Rust headless que:
 - `.planning/research/FEATURES.md` — categorização table-stakes vs deferred (Phase 1 não toca features de UX, mas o planner verifica que nada de M1+ vazou para M0)
 
 ### Sample data (parser/CI gate target)
-- `data-folder-sample/Logseq/` — 619 arquivos reais (533 journals + 86 pages + Untitled.md). Target do ACPT-01.
-- `data-folder-sample/Logseq/journals/2023_11_09.md` — exemplo canônico de code fence dentro de bullet com 2-space continuation; teste manual durante o spike do segmenter.
-- `data-folder-sample/Logseq/logseq/config.edn` — fonte de `:hidden`, `:journal/file-name-format`, `:journal/page-title-format` quando presentes (Phase 1 só lê `:hidden`; demais ficam para Phase 2).
+- `crates/core/tests/fixtures/logseq-synthetic/` — **corpus sintético committed** (10 arquivos, sem PII) que cobre todos os padrões da §6.6. Target primário do ACPT-01; roda no CI matrix Linux/macOS/Windows.
+- `data-folder-sample/Logseq/` (gitignored — PII) — 620 arquivos reais (533 journals + 86 pages + Untitled.md). Target secundário opt-in do ACPT-01; roda só quando a pasta existe localmente.
+- `data-folder-sample/Logseq/journals/2023_11_09.md` (gitignored) — exemplo canônico de code fence dentro de bullet com 2-space continuation; teste manual durante o spike do segmenter. A fixture sintética equivalente é `crates/core/tests/fixtures/logseq-synthetic/pages/02-fence-in-bullet.md`.
+- `data-folder-sample/Logseq/logseq/config.edn` (gitignored) — fonte de `:hidden`, `:journal/file-name-format`, `:journal/page-title-format` quando presentes (Phase 1 só lê `:hidden`; demais ficam para Phase 2).
 
 </canonical_refs>
 
@@ -120,8 +125,8 @@ Greenfield — não há código existente além do PRD, CLAUDE.md e research art
 <specifics>
 ## Specific Ideas
 
-- **Inventory CLI é gatekeeper do sign-off do parser.** Rodar `foliom inventory data-folder-sample/Logseq/ --json` deve produzir contagens de: `alias::`, `id::`, `:LOGBOOK:`, `#[[...]]`, `%2F` em filename, `template::`, code-fence-inside-bullet (ocorrências), `SCHEDULED:`/`DEADLINE:`, files com block properties total, files com drawers total. Estas contagens viram CI assertion (não regredir).
-- **Round-trip property test** (`ACPT-01`) é o primeiro arquivo de teste a ser escrito, antes de qualquer storage ou indexer. Use `insta` ou test direto: para cada arquivo em `data-folder-sample/Logseq/`, ler bytes → parsear em blocks → fazer "splice no-op" (reescrever cada bloco no próprio offset com o próprio raw) → assertar buffer byte-idêntico ao original. Esse teste fica VERDE pra sempre.
+- **Inventory CLI é gatekeeper do sign-off do parser.** Rodar `foliom inventory <root> --json` produz contagens de: `alias::`, `id::`, `:LOGBOOK:`, `#[[...]]`, `%2F` em filename, `template::`, code-fence-inside-bullet (ocorrências), `SCHEDULED:`/`DEADLINE:`, files com block properties total, files com drawers total. Em CI roda contra `crates/core/tests/fixtures/logseq-synthetic/` (snapshot fixo). Localmente o usuário pode rodar contra `data-folder-sample/Logseq/` para sanidade contra base real.
+- **Round-trip property test** (`ACPT-01`) é o primeiro arquivo de teste a ser escrito, antes de qualquer storage ou indexer. Para cada arquivo no corpus sintético committed (CI sempre) e — se presente localmente — em `data-folder-sample/Logseq/` (opt-in), ler bytes → parsear em blocks → fazer "splice no-op" → assertar buffer byte-idêntico ao original. Esse teste fica VERDE pra sempre.
 
 </specifics>
 

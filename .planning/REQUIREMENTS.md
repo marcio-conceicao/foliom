@@ -25,7 +25,7 @@
 - [ ] **PRS-04**: Tag/link extraction reads the CommonMark AST and considers only text nodes — ignoring ATX headings (`# Título`), code blocks, hex colors (`#fff`), and URLs.
 - [ ] **PRS-05**: Block properties (`key:: value`, including `id::`, `collapsed::`, `alias::`, `template::`, `logseq.order-list-type::`, `file::`) are preserved opaquely — parsed into a per-block `properties` slot, never rendered, written back at canonical position.
 - [ ] **PRS-06**: Logseq drawers (`:LOGBOOK:` / `:END:`) are preserved opaquely attached to the parent block — never reformatted, never dropped.
-- [ ] **PRS-07**: The parser round-trips byte-identical on the entire `data-folder-sample/Logseq/` corpus (~600 files); this is a CI gate. (See ACPT-01.)
+- [ ] **PRS-07**: The parser round-trips byte-identical on (a) the committed synthetic Logseq corpus in `crates/core/tests/fixtures/logseq-synthetic/` (CI gate, no PII) and (b) the opt-in real corpus at `data-folder-sample/Logseq/` when present locally (gitignored — PII). (See ACPT-01.)
 
 ### Linking & Navigation (LNK)
 
@@ -77,7 +77,7 @@
 
 ### Acceptance Tests / Quality Gates (ACPT)
 
-- [ ] **ACPT-01**: Round-trip stability CI test: for every file in `data-folder-sample/Logseq/`, `read → parse → splice-noop → write` produces a byte-identical buffer. This test ships before any storage code is built and must stay green.
+- [ ] **ACPT-01**: Round-trip stability gate. Primary: for every `.md` in the committed synthetic corpus (`crates/core/tests/fixtures/logseq-synthetic/`), `read → segment → splice-noop → write` produces a byte-identical buffer — this runs in CI matrix Linux/macOS/Windows. Secondary (opt-in, local-only): same check against `data-folder-sample/Logseq/` when the gitignored real corpus is present. Both legs ship before any storage code is built and must stay green for the project's life.
 - [ ] **ACPT-02**: Performance CI: cold start with a 5,000-note generated corpus completes in under 2 seconds on a reference laptop (M1-class).
 - [ ] **ACPT-03**: Memory CI: RSS at idle (after open + first journal) is under 300 MB on the 5,000-note corpus.
 - [ ] **ACPT-04**: Cross-platform CI: parser + watcher tests run on Linux, macOS, and Windows runners.

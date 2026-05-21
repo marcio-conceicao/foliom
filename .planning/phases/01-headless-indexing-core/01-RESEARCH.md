@@ -4,9 +4,11 @@
 **Domain:** Rust headless markdown indexer (two-stage parser, SQLite FTS5, CLI)
 **Confidence:** HIGH (stack/architecture inherited from project research and locked by CONTEXT D-09..D-21; this document is concrete how-to design for the planner)
 
+> **REVISION 2026-05-21:** the round-trip corpus was split into (a) a small committed synthetic corpus at `crates/core/tests/fixtures/logseq-synthetic/` (CI gate, no PII) and (b) the original `data-folder-sample/Logseq/` (gitignored — PII) as an opt-in local check. Anywhere this document still says "the 619 sample files" or "data-folder-sample/Logseq/" as a CI target, read it as "the synthetic corpus in CI plus the real corpus locally when present." CONTEXT.md D-08 has the canonical wording.
+
 ## Summary
 
-Phase 1 builds the Rust headless core that proves Foliom's foundation works against real Logseq data **before any UI exists**. The non-negotiable invariant is the **round-trip CI gate (ACPT-01)**: every file in `data-folder-sample/Logseq/` (~619 files) must read → segment → splice-noop → write byte-identical. This test ships **first**, before storage/indexer/CLI, and stays green forever.
+Phase 1 builds the Rust headless core that proves Foliom's foundation works against real Logseq data **before any UI exists**. The non-negotiable invariant is the **round-trip CI gate (ACPT-01)**: every file in the synthetic corpus (`crates/core/tests/fixtures/logseq-synthetic/`, 10 hand-crafted files covering every §6.6 pattern) must read → segment → splice-noop → write byte-identical. The same property also runs opportunistically against the gitignored real corpus `data-folder-sample/Logseq/` when present locally (≈620 files). This test ships **first**, before storage/indexer/CLI, and stays green forever.
 
 The architecture is locked by CONTEXT.md: Cargo workspace (`crates/core` + `crates/cli`), Rust 1.85+, `pulldown-cmark` 0.13 for Stage 2 parsing only (Stage 1 is a hand-rolled line-based segmenter that owns TAB indent + 2-space continuation + fence-awareness + drawer-awareness), `rusqlite` 0.39 bundled with FTS5, BLAKE3 for hashing, `walkdir` 2.5 with `filter_entry` for the ignore list, and NFC-normalized + forward-slash paths at the storage boundary. The DB lives at `$XDG_DATA_HOME/foliom/<root-hash-16-hex>.db` (or platform equivalent) — **never** inside the notes folder.
 
