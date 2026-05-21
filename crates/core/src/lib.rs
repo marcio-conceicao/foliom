@@ -4,6 +4,7 @@
 //! consumed by `foliom-cli` (and, in later phases, by `foliom-server` and
 //! the Tauri desktop shell).
 
+pub mod indexer;
 pub mod parser;
 pub mod path;
 pub mod scanner;
