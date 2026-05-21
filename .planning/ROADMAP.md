@@ -35,7 +35,7 @@
 - [x] 01-02-PLAN.md — Stage 1 segmenter (TAB + 2-space continuation, fence-aware, drawer-aware) → flips ACPT-01 GREEN
 - [x] 01-03-PLAN.md — Stage 2 parser (CommonMark + ref extraction) + RelativePath newtype (NFC + forward-slash)
 - [x] 01-04-PLAN.md — Storage schema (migration v1), DB-location resolver, Db wrapper with PRAGMAs
-- [ ] 01-05-PLAN.md — Scanner with walkdir + ignore list + minimal config.edn :hidden reader
+- [x] 01-05-PLAN.md — Scanner with walkdir + ignore list + minimal config.edn :hidden reader
 - [ ] 01-06-PLAN.md — Indexer orchestrator (incremental + full reindex, per-file transactions)
 - [ ] 01-07-PLAN.md — CLI subcommands (index/reindex/search/dump-tree/inventory) + pinned inventory regression + green CI matrix
 

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: "awaiting `/gsd:plan-phase 1`"
-last_updated: "2026-05-21T22:58:19.037Z"
+last_updated: "2026-05-21T23:45:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 7
-  completed_plans: 4
-  percent: 57
+  completed_plans: 6
+  percent: 86
 ---
 
 # Foliom — Project State
@@ -29,10 +29,10 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 1 — Headless Indexing Core (not started)
-- **Plan:** none yet
-- **Status:** awaiting `/gsd:plan-phase 1`
-- **Progress:** [██████░░░░] 57%
+- **Phase:** 1 — Headless Indexing Core (in progress, plans 01–05 of ~7 complete)
+- **Plan:** 01-05 complete; next is 01-06 (indexer)
+- **Status:** Phase 1 plans 01–05 executed
+- **Progress:** [████████░░] 86%
 
 ---
 
@@ -56,6 +56,8 @@ progress:
 - `.md` is canonical; SQLite is derivable cache stored outside notes folder.
 - Two-stage parser: line-based outliner segmenter (TAB + 2-space continuation) → per-block CommonMark.
 - Blocks materialized with both `raw` TEXT and `(byte_offset, byte_length)`; writeback via byte-splice, never whole-file re-serialize.
+- (Plan 01-05) Scanner uses `walkdir 2.5` with `follow_links(false)` + `filter_entry`; ignore list is the 11-name hard-coded set + `:hidden` from `config.edn`. `regex 1` is added only for the config.edn module; segmenter/parser hot path stays regex-free.
+- (Plan 01-05) Minimal `config.edn :hidden` reader is regex-based and NOT comment-aware — Phase 2 will upgrade if the renderer needs more keys.
 
 ### Open Decisions (PRD §12)
 
@@ -77,6 +79,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Roadmap created via `/gsd:new-project` orchestrator.
-**Next action:** `/gsd:plan-phase 1` to decompose Phase 1 (Headless Indexing Core) into executable plans.
-**Resumption hint:** Phase 1 must produce the ACPT-01 round-trip CI gate and IDX-08 inventory script BEFORE any storage/indexer/watcher work.
+**Last action:** Completed Phase 1 Plan 05 — scanner + ignore list + minimal `config.edn :hidden` reader. 6 commits (3 RED + 3 GREEN), 92 workspace tests green, AP-2 clean. IDX-01 satisfied.
+**Next action:** Plan 01-06 — incremental indexer that consumes `scanner::walk` and persists files / pages / blocks / refs into the storage layer.
+**Resumption hint:** `scanner::walk(root, &ignore_set)` returns `Iterator<Item = ScanEntry>` where ScanEntry carries `(absolute path, mtime_ns, size)`. Indexer converts path via `RelativePath::from_filesystem(&path, root)` at the storage boundary. Read `config.edn :hidden` once at startup via `scanner::config_edn::read_hidden(root.join("logseq/config.edn"))` and feed to `IgnoreSet::extend_from_config_edn` before walking.

@@ -8,7 +8,7 @@
 
 ### Indexing & Storage (IDX)
 
-- [ ] **IDX-01**: Foliom can scan a root folder recursively and discover all `.md` files, respecting an ignore list (`logseq/`, `assets/`, `draws/`, `whiteboards/`, `bak/`, `.recycle/`, `version-files/`, plus `:hidden` entries from `config.edn` when present).
+- [x] **IDX-01**: Foliom can scan a root folder recursively and discover all `.md` files, respecting an ignore list (`logseq/`, `assets/`, `draws/`, `whiteboards/`, `bak/`, `.recycle/`, `version-files/`, plus `:hidden` entries from `config.edn` when present).
 - [x] **IDX-02**: Foliom builds a SQLite index (files, pages, blocks, tags, refs, FTS5) derived from the `.md` files; deleting the index never causes data loss.
 - [ ] **IDX-03**: On startup, Foliom reindexes incrementally — only files whose `mtime`+`hash` changed are reparsed.
 - [ ] **IDX-04**: User can trigger a full reindex via CLI command (e.g. `foliom reindex`).
@@ -118,7 +118,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IDX-01 | Phase 1 | Pending |
+| IDX-01 | Phase 1 | Complete (Plan 01-05) |
 | IDX-02 | Phase 1 | Complete |
 | IDX-03 | Phase 1 | Pending |
 | IDX-04 | Phase 1 | Pending |
