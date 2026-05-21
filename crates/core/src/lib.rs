@@ -5,3 +5,4 @@
 //! the Tauri desktop shell).
 
 pub mod parser;
+pub mod path;
