@@ -27,6 +27,9 @@ rusqlite_migration = "2.5"
 tracing = "0.1"
 # Promoted from dev-dep in Plan 01-05: now used by scanner::walk (D-17).
 walkdir = "2.5"
+# Plan 01-05: needed by scanner::config_edn for the minimal `:hidden` reader
+# (regex-based, documented scope — full EDN parser is Phase 2 work).
+regex = "1"
 
 [dev-dependencies]
 tempfile = "3"
