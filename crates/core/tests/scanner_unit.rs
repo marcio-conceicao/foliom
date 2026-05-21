@@ -194,7 +194,22 @@ fn walk_against_real_config_edn_corpus_if_present() {
     assert!(!entries.is_empty(), "real corpus should yield at least one .md");
     for e in &entries {
         assert_eq!(e.path.extension().and_then(|s| s.to_str()), Some("md"));
-        assert!(e.size > 0);
+        // Logseq can create legitimately-empty .md files; only mtime is
+        // guaranteed non-zero on any sane filesystem.
         assert!(e.mtime_ns > 0);
+    }
+    // Hard regression guard: nothing under `assets/`, `bak/`, `logseq/`,
+    // or any dotdir should have leaked through.
+    for e in &entries {
+        let rel = e.path.strip_prefix(path).unwrap();
+        for comp in rel.components() {
+            let s = comp.as_os_str().to_str().unwrap_or("");
+            assert!(
+                !matches!(s, "assets" | "bak" | "logseq" | "draws" | "whiteboards" | ".recycle" | "version-files"),
+                "ignored dir leaked through real-corpus walk: {}",
+                rel.display()
+            );
+            assert!(!s.starts_with('.') || s == "." || s == "..", "dotdir leaked: {}", rel.display());
+        }
     }
 }
