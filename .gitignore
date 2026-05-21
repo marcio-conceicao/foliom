@@ -1,0 +1,12 @@
+# Rust build artifacts.
+/target/
+
+# Editor/IDE local state.
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS/Windows junk.
+.DS_Store
+Thumbs.db

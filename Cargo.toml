@@ -1,0 +1,14 @@
+# Foliom workspace manifest (D-07).
+# Edition 2024 per D-09 ("edition 2024 when available").
+# Installed toolchain (1.95) supports edition 2024 — no fallback needed.
+# rust-version 1.85 declares MSRV.
+
+[workspace]
+members = ["crates/core", "crates/cli"]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+license = "Apache-2.0"
+publish = false

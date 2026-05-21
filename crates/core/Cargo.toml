@@ -1,0 +1,22 @@
+[package]
+name = "foliom-core"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "foliom_core"
+path = "src/lib.rs"
+
+# No runtime dependencies yet.
+# Plan 02 adds the segmenter state machine (no new deps).
+# Plan 03 adds pulldown-cmark / unicode-normalization.
+# Plan 04 adds rusqlite / blake3 / rusqlite_migration.
+[dependencies]
+
+# walkdir is used by the round-trip test (tests/roundtrip.rs) to enumerate
+# the sample corpus. Pinned to 2.5 per D-17.
+[dev-dependencies]
+walkdir = "2.5"
