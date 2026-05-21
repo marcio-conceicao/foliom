@@ -77,7 +77,13 @@ fn data_dir() -> Result<PathBuf, StorageError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Mutex;
     use tempfile::TempDir;
+
+    /// Serialize all env-mutating tests in this module. `cargo test` runs unit
+    /// tests in parallel by default, and concurrent `set_var` on the same key
+    /// produces flaky results (other threads see your scratch value).
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     /// Set `XDG_DATA_HOME` to `temp` for the duration of the closure (Linux only).
     /// SAFETY: tests run single-threaded under `cargo test` only when explicitly
@@ -102,6 +108,7 @@ mod tests {
     #[test]
     #[cfg(target_os = "linux")]
     fn resolves_under_xdg_data_home_when_set() {
+        let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let xdg = TempDir::new().unwrap();
         let notes = TempDir::new().unwrap();
         with_xdg(xdg.path(), || {
@@ -164,6 +171,7 @@ mod tests {
     #[test]
     #[cfg(target_os = "linux")]
     fn empty_xdg_falls_back_to_home_local_share() {
+        let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let notes = TempDir::new().unwrap();
         let prev_xdg = std::env::var("XDG_DATA_HOME").ok();
         let prev_home = std::env::var("HOME").ok();
