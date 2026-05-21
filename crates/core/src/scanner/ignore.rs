@@ -1,28 +1,61 @@
 //! `IgnoreSet` and the hard-coded Logseq ignore list (IDX-01).
 //!
-//! Implementation stub — see Task 1 GREEN.
+//! The ignore list is exact-match, case-sensitive on the directory name.
+//! [`super::walk::walk`] consults [`IgnoreSet::is_ignored`] at every
+//! directory entry via `walkdir::filter_entry`, so an ignored directory is
+//! never even descended into — its children are not enumerated at all.
+//!
+//! [`IgnoreSet::extend_from_config_edn`] folds the `:hidden [...]` strings
+//! from the user's `logseq/config.edn` into the set. The Logseq syntax
+//! allows the entries to be path-like (e.g. `"/archived"`,
+//! `"../assets/archived"`), but Phase 1's matcher is a single segment
+//! name — anything with a path separator simply will not match and is
+//! stored verbatim. Phase 2 may revisit if real-world configs demand
+//! path-based suppression.
 
 use std::collections::HashSet;
 
-pub const DEFAULT_LOGSEQ_IGNORES: &[&str] = &[];
+/// Hard-coded ignore list for the Logseq folder layout (IDX-01). Reproduced
+/// verbatim from RESEARCH §Ignore List.
+pub const DEFAULT_LOGSEQ_IGNORES: &[&str] = &[
+    "logseq",        // Logseq metadata folder
+    "assets",        // images / attachments
+    "draws",         // Excalidraw drawings (.excalidraw)
+    "whiteboards",   // Logseq whiteboards
+    "bak",           // Logseq edit-history backups
+    ".recycle",      // Logseq trash
+    "version-files", // Logseq versioning
+    ".git",          // version control
+    ".obsidian",     // if user also opened the folder in Obsidian
+    ".trash",        //
+    "node_modules",  // safety net
+];
 
+/// A case-sensitive set of directory names the scanner must not descend
+/// into.
 #[derive(Debug, Clone, Default)]
 pub struct IgnoreSet {
-    #[allow(dead_code)]
     names: HashSet<String>,
 }
 
 impl IgnoreSet {
+    /// Build an `IgnoreSet` pre-populated with [`DEFAULT_LOGSEQ_IGNORES`].
     pub fn default_logseq() -> Self {
-        todo!("Task 1 GREEN")
+        Self {
+            names: DEFAULT_LOGSEQ_IGNORES.iter().map(|s| (*s).to_string()).collect(),
+        }
     }
 
-    pub fn extend_from_config_edn(&mut self, _hidden: Vec<String>) {
-        todo!("Task 1 GREEN")
+    /// Fold `:hidden` entries from `config.edn` into the set. Duplicates
+    /// are no-ops.
+    pub fn extend_from_config_edn(&mut self, hidden: Vec<String>) {
+        self.names.extend(hidden);
     }
 
-    pub fn is_ignored(&self, _name: &str) -> bool {
-        todo!("Task 1 GREEN")
+    /// Return `true` if `name` is in the ignore set (exact match,
+    /// case-sensitive).
+    pub fn is_ignored(&self, name: &str) -> bool {
+        self.names.contains(name)
     }
 }
 
