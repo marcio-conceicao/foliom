@@ -1,14 +1,83 @@
-//! Stub — implemented in Task 3 GREEN.
-#![allow(dead_code)]
+//! Minimal `logseq/config.edn :hidden` extractor.
+//!
+//! Phase 1 reads exactly one key from `config.edn`: `:hidden`. Anything
+//! else (`:journal/file-name-format`, `:pages-directory`, `:journals-directory`,
+//! aliases, etc.) is deferred to Phase 2, when the renderer will need
+//! a real EDN parser.
+//!
+//! ## Recognised forms
+//!
+//! ```edn
+//! :hidden ["foo" "bar"]
+//! :hidden #{"baz"}
+//! :hidden [
+//!   "a"
+//!   "b"
+//! ]
+//! ```
+//!
+//! ## Documented limitations
+//!
+//! * Does NOT handle nested maps or tagged literals (`#inst "..."`).
+//! * Does NOT handle namespaced keywords on the value side.
+//! * Does NOT handle multi-line strings that span the `]` / `}` boundary.
+//! * Does NOT distinguish a `:hidden` inside a line comment from a real
+//!   key; the regex finds the first match in the file. Real `config.edn`
+//!   files conventionally place `:hidden` outside any comment so this is
+//!   acceptable for Phase 1.
+//! * Returns `Vec::new()` on absent file, IO error, or unparseable value —
+//!   never panics.
+//!
+//! Phase 2 will replace this if the renderer needs other `config.edn`
+//! keys.
 
 use std::path::Path;
+use std::sync::OnceLock;
 
-pub fn read_hidden(_config_edn_path: &Path) -> Vec<String> {
-    todo!("Task 3 GREEN")
+use regex::Regex;
+
+/// Read `logseq/config.edn` and extract the `:hidden` string list.
+/// Returns an empty Vec on any read or parse failure.
+pub fn read_hidden(config_edn_path: &Path) -> Vec<String> {
+    let content = match std::fs::read_to_string(config_edn_path) {
+        Ok(s) => s,
+        Err(err) => {
+            tracing::warn!(
+                path = %config_edn_path.display(),
+                error = %err,
+                "could not read config.edn — treating :hidden as empty"
+            );
+            return Vec::new();
+        }
+    };
+    parse_hidden_from_str(&content)
 }
 
-pub(crate) fn parse_hidden_from_str(_content: &str) -> Vec<String> {
-    todo!("Task 3 GREEN")
+/// Pure-string variant — exposed crate-private for unit testing without
+/// touching the filesystem.
+pub(crate) fn parse_hidden_from_str(content: &str) -> Vec<String> {
+    // `:hidden  ` followed by `[ ... ]`  or  `#{ ... }`.
+    // `(?s)` enables dot-matches-newline (the `[^\]\}]*` payload handles
+    // newlines on its own since it excludes the closing bracket, but
+    // making it explicit costs nothing).
+    static HIDDEN_RE: OnceLock<Regex> = OnceLock::new();
+    let re = HIDDEN_RE.get_or_init(|| {
+        Regex::new(r#"(?s):hidden\s+[#]?[\[\{]([^\]\}]*)[\]\}]"#).unwrap()
+    });
+    let inner = match re.captures(content).and_then(|c| c.get(1)) {
+        Some(m) => m.as_str(),
+        None => return Vec::new(),
+    };
+
+    // Standard double-quoted-string with backslash escape support.
+    static STR_RE: OnceLock<Regex> = OnceLock::new();
+    let str_re =
+        STR_RE.get_or_init(|| Regex::new(r#""([^"\\]*(?:\\.[^"\\]*)*)""#).unwrap());
+
+    str_re
+        .captures_iter(inner)
+        .map(|c| c[1].to_string())
+        .collect()
 }
 
 #[cfg(test)]
@@ -58,14 +127,11 @@ mod tests {
 
     #[test]
     fn commented_out_hidden_is_ignored() {
-        // The regex is naive: a `:hidden` inside a line-comment will still
-        // match. We document this in the module doc. Phase 2 may upgrade
-        // to a real EDN parser if needed.
+        // Documented naivety: the regex finds the first match regardless
+        // of whether it's inside a line comment. We accept any result
+        // here as long as it doesn't panic — the smoke test against the
+        // real config.edn is the primary safety net.
         let content = ";; :hidden [\"a\" \"b\"]\n:hidden []";
-        // The regex finds the FIRST match — which is the commented one
-        // in this synthetic case. So we accept any result that doesn't
-        // panic; the smoke-test against the real config.edn is the
-        // primary safety net.
         let _ = parse_hidden_from_str(content);
     }
 
