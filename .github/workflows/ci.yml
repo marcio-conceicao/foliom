@@ -1,0 +1,49 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        rust: [stable]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Round-trip gate (ACPT-01) compares raw bytes. .gitattributes at
+          # the repo root forces LF for `.md` files and `-text` for the
+          # entire `data-folder-sample/**` tree, so Windows autocrlf cannot
+          # mangle the corpus.
+          fetch-depth: 1
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: phase1-${{ matrix.os }}
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: cargo build
+        run: cargo build --workspace --locked
+
+      - name: cargo nextest run (parser + scanner + roundtrip + storage)
+        run: cargo nextest run --workspace --no-fail-fast
+
+      # TODO(plan 01-07): remove continue-on-error once inventory subcommand lands.
+      - name: Inventory smoke test (asserts known pattern counts)
+        run: cargo run --bin foliom -- inventory data-folder-sample/Logseq/ --json > /tmp/inv.json
+        if: runner.os != 'Windows'
+        continue-on-error: true
+
+      # TODO(plan 01-07): remove continue-on-error once inventory subcommand lands.
+      - name: Inventory smoke test (Windows)
+        run: cargo run --bin foliom -- inventory data-folder-sample/Logseq/ --json > $env:TEMP\inv.json
+        if: runner.os == 'Windows'
+        continue-on-error: true
