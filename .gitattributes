@@ -1,0 +1,3 @@
+* text=auto eol=lf
+data-folder-sample/** -text
+*.md text eol=lf
