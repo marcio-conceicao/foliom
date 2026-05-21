@@ -34,7 +34,7 @@
 - [x] 01-01-PLAN.md — Workspace skeleton + RawBlock type + failing round-trip CI gate (ACPT-01 RED)
 - [x] 01-02-PLAN.md — Stage 1 segmenter (TAB + 2-space continuation, fence-aware, drawer-aware) → flips ACPT-01 GREEN
 - [x] 01-03-PLAN.md — Stage 2 parser (CommonMark + ref extraction) + RelativePath newtype (NFC + forward-slash)
-- [ ] 01-04-PLAN.md — Storage schema (migration v1), DB-location resolver, Db wrapper with PRAGMAs
+- [x] 01-04-PLAN.md — Storage schema (migration v1), DB-location resolver, Db wrapper with PRAGMAs
 - [ ] 01-05-PLAN.md — Scanner with walkdir + ignore list + minimal config.edn :hidden reader
 - [ ] 01-06-PLAN.md — Indexer orchestrator (incremental + full reindex, per-file transactions)
 - [ ] 01-07-PLAN.md — CLI subcommands (index/reindex/search/dump-tree/inventory) + pinned inventory regression + green CI matrix
@@ -94,7 +94,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Headless Indexing Core | 0/7 | Not started | - |
+| 1. Headless Indexing Core | 4/7 | In Progress|  |
 | 2. Read-Only Web UI | 0/0 | Not started | - |
 | 3. Outliner Editor | 0/0 | Not started | - |
 | 4. Disk Sync | 0/0 | Not started | - |

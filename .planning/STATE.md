@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: "awaiting `/gsd:plan-phase 1`"
-last_updated: "2026-05-21T21:32:18.258Z"
+last_updated: "2026-05-21T22:58:19.037Z"
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 7
-  completed_plans: 3
-  percent: 43
+  completed_plans: 4
+  percent: 57
 ---
 
 # Foliom — Project State
@@ -32,7 +32,7 @@ progress:
 - **Phase:** 1 — Headless Indexing Core (not started)
 - **Plan:** none yet
 - **Status:** awaiting `/gsd:plan-phase 1`
-- **Progress:** [████░░░░░░] 43%
+- **Progress:** [██████░░░░] 57%
 
 ---
 

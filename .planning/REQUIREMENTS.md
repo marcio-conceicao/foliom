@@ -9,11 +9,11 @@
 ### Indexing & Storage (IDX)
 
 - [ ] **IDX-01**: Foliom can scan a root folder recursively and discover all `.md` files, respecting an ignore list (`logseq/`, `assets/`, `draws/`, `whiteboards/`, `bak/`, `.recycle/`, `version-files/`, plus `:hidden` entries from `config.edn` when present).
-- [ ] **IDX-02**: Foliom builds a SQLite index (files, pages, blocks, tags, refs, FTS5) derived from the `.md` files; deleting the index never causes data loss.
+- [x] **IDX-02**: Foliom builds a SQLite index (files, pages, blocks, tags, refs, FTS5) derived from the `.md` files; deleting the index never causes data loss.
 - [ ] **IDX-03**: On startup, Foliom reindexes incrementally — only files whose `mtime`+`hash` changed are reparsed.
 - [ ] **IDX-04**: User can trigger a full reindex via CLI command (e.g. `foliom reindex`).
-- [ ] **IDX-05**: The blocks table stores `raw` text **plus** `(byte_offset, byte_length)` so write-back can splice changed bytes into the original file without re-serializing the AST.
-- [ ] **IDX-06**: The SQLite database lives outside the notes folder (default `$XDG_DATA_HOME/foliom/<root-hash>.db`) to avoid cloud-sync corruption.
+- [x] **IDX-05**: The blocks table stores `raw` text **plus** `(byte_offset, byte_length)` so write-back can splice changed bytes into the original file without re-serializing the AST.
+- [x] **IDX-06**: The SQLite database lives outside the notes folder (default `$XDG_DATA_HOME/foliom/<root-hash>.db`) to avoid cloud-sync corruption.
 - [ ] **IDX-07**: All stored paths are normalized to NFC + forward slashes so macOS NFC/NFD and Windows backslash differences don't duplicate or lose entries.
 - [ ] **IDX-08**: A one-shot inventory CLI command reports counts of Logseq-specific patterns (`alias::`, `id::`, `:LOGBOOK:`, `#[[...]]`, `%2F`, `template::`, code-fence-in-bullet, `SCHEDULED:`/`DEADLINE:`) over the user's real base — this gates M0 parser sign-off.
 
@@ -119,11 +119,11 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | IDX-01 | Phase 1 | Pending |
-| IDX-02 | Phase 1 | Pending |
+| IDX-02 | Phase 1 | Complete |
 | IDX-03 | Phase 1 | Pending |
 | IDX-04 | Phase 1 | Pending |
-| IDX-05 | Phase 1 | Pending |
-| IDX-06 | Phase 1 | Pending |
+| IDX-05 | Phase 1 | Complete |
+| IDX-06 | Phase 1 | Complete |
 | IDX-07 | Phase 1 | Pending |
 | IDX-08 | Phase 1 | Pending |
 | PRS-01 | Phase 1 | Complete |
