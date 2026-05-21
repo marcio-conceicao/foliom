@@ -30,7 +30,14 @@
   3. `foliom index <root>` builds a SQLite index (files, pages, blocks with `raw` + `(byte_offset, byte_length)`, tags, refs, FTS5) stored outside the notes folder (`$XDG_DATA_HOME/foliom/<root-hash>.db`); deleting the DB and re-running reproduces the same index.
   4. `foliom reindex` does incremental work — only files whose `mtime`/`hash` changed are reparsed.
   5. Parser + scanner tests run green on Linux, macOS, and Windows CI runners (ACPT-04) with NFC + forward-slash path normalization.
-**Plans**: TBD
+**Plans**: 7 plans
+- [ ] 01-01-PLAN.md — Workspace skeleton + RawBlock type + failing round-trip CI gate (ACPT-01 RED)
+- [ ] 01-02-PLAN.md — Stage 1 segmenter (TAB + 2-space continuation, fence-aware, drawer-aware) → flips ACPT-01 GREEN
+- [ ] 01-03-PLAN.md — Stage 2 parser (CommonMark + ref extraction) + RelativePath newtype (NFC + forward-slash)
+- [ ] 01-04-PLAN.md — Storage schema (migration v1), DB-location resolver, Db wrapper with PRAGMAs
+- [ ] 01-05-PLAN.md — Scanner with walkdir + ignore list + minimal config.edn :hidden reader
+- [ ] 01-06-PLAN.md — Indexer orchestrator (incremental + full reindex, per-file transactions)
+- [ ] 01-07-PLAN.md — CLI subcommands (index/reindex/search/dump-tree/inventory) + pinned inventory regression + green CI matrix
 
 ### Phase 2: Read-Only Web UI
 **Goal**: A user can point Foliom at their Logseq folder, open `localhost` in a browser, navigate the graph by `[[links]]`/`#tags`, see backlinks, browse journals, and run full-text search — all read-only, all lazy-loaded, hitting the 5k-note performance budget.
@@ -87,7 +94,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Headless Indexing Core | 0/0 | Not started | - |
+| 1. Headless Indexing Core | 0/7 | Not started | - |
 | 2. Read-Only Web UI | 0/0 | Not started | - |
 | 3. Outliner Editor | 0/0 | Not started | - |
 | 4. Disk Sync | 0/0 | Not started | - |
