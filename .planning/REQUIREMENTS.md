@@ -116,9 +116,66 @@
 
 ## Traceability
 
-| Phase | Requirements |
-|-------|--------------|
-| (filled by roadmap) | |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| IDX-01 | Phase 1 | Pending |
+| IDX-02 | Phase 1 | Pending |
+| IDX-03 | Phase 1 | Pending |
+| IDX-04 | Phase 1 | Pending |
+| IDX-05 | Phase 1 | Pending |
+| IDX-06 | Phase 1 | Pending |
+| IDX-07 | Phase 1 | Pending |
+| IDX-08 | Phase 1 | Pending |
+| PRS-01 | Phase 1 | Pending |
+| PRS-02 | Phase 1 | Pending |
+| PRS-03 | Phase 1 | Pending |
+| PRS-04 | Phase 1 | Pending |
+| PRS-05 | Phase 1 | Pending |
+| PRS-06 | Phase 1 | Pending |
+| PRS-07 | Phase 1 | Pending |
+| ACPT-01 | Phase 1 | Pending |
+| ACPT-04 | Phase 1 | Pending |
+| LNK-01 | Phase 2 | Pending |
+| LNK-02 | Phase 2 | Pending |
+| LNK-03 | Phase 2 | Pending |
+| LNK-05 | Phase 2 | Pending |
+| LNK-06 | Phase 2 | Pending |
+| LNK-07 | Phase 2 | Pending |
+| SCH-01 | Phase 2 | Pending |
+| SCH-02 | Phase 2 | Pending |
+| SCH-03 | Phase 2 | Pending |
+| UI-01 | Phase 2 | Pending |
+| UI-02 | Phase 2 | Pending |
+| UI-03 | Phase 2 | Pending |
+| UI-04 | Phase 2 | Pending |
+| EDT-08 | Phase 2 | Pending |
+| ACPT-02 | Phase 2 | Pending |
+| ACPT-03 | Phase 2 | Pending |
+| EDT-01 | Phase 3 | Pending |
+| EDT-02 | Phase 3 | Pending |
+| EDT-03 | Phase 3 | Pending |
+| EDT-04 | Phase 3 | Pending |
+| EDT-05 | Phase 3 | Pending |
+| EDT-06 | Phase 3 | Pending |
+| EDT-07 | Phase 3 | Pending |
+| EDT-09 | Phase 3 | Pending |
+| EDT-10 | Phase 3 | Pending |
+| EDT-11 | Phase 3 | Pending |
+| EDT-12 | Phase 3 | Pending |
+| EDT-13 | Phase 3 | Pending |
+| SNC-01 | Phase 3 | Pending |
+| SNC-02 | Phase 3 | Pending |
+| SNC-05 | Phase 3 | Pending |
+| LNK-04 | Phase 3 | Pending |
+| ACPT-05 | Phase 3 | Pending |
+| SNC-03 | Phase 4 | Pending |
+| SNC-04 | Phase 4 | Pending |
+| SNC-06 | Phase 4 | Pending |
+| DSK-01 | Phase 5 | Pending |
+| DSK-02 | Phase 5 | Pending |
+| DSK-03 | Phase 5 | Pending |
+
+**Coverage:** 56/56 v1 requirements mapped to exactly one phase. No orphans, no duplicates.
 
 ---
 *Generated 2026-05-21 from PRD + research synthesis.*
