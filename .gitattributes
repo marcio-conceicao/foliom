@@ -1,3 +1,6 @@
 * text=auto eol=lf
+# Both the gitignored real corpus and the committed synthetic fixtures must
+# stay byte-stable across OS checkouts — disable Git's autocrlf for them.
 data-folder-sample/** -text
+crates/core/tests/fixtures/logseq-synthetic/** -text
 *.md text eol=lf

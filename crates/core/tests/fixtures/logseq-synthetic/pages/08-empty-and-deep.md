@@ -1,0 +1,9 @@
+-
+- Bullet with content after an empty sibling above
+	- depth 1
+		- depth 2
+			- depth 3
+				- depth 4
+					- depth 5 — leaf
+- Trailing empty bullet
+-

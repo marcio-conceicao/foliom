@@ -1,0 +1,5 @@
+- Reunião com [[Glauber]] sobre [[Speech Analytics]]
+	- Mencionou #urgente e #[[Monitoria de Qualidade]] no meio da frase
+	- Próxima ação: alinhar com [[Marcelo]] e tag #conector-com-parceiro
+- Standalone tag at start: #roadmap
+- Tag at end of sentence #fim

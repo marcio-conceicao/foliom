@@ -1,0 +1,3 @@
+- Namespace page; filename uses `%2F` to encode `/`
+	- Link back to parent via [[Parent]]
+	- Sibling: [[Parent/Sibling]]
