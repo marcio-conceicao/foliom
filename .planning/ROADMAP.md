@@ -33,7 +33,7 @@
 **Plans**: 7 plans
 - [x] 01-01-PLAN.md — Workspace skeleton + RawBlock type + failing round-trip CI gate (ACPT-01 RED)
 - [x] 01-02-PLAN.md — Stage 1 segmenter (TAB + 2-space continuation, fence-aware, drawer-aware) → flips ACPT-01 GREEN
-- [ ] 01-03-PLAN.md — Stage 2 parser (CommonMark + ref extraction) + RelativePath newtype (NFC + forward-slash)
+- [x] 01-03-PLAN.md — Stage 2 parser (CommonMark + ref extraction) + RelativePath newtype (NFC + forward-slash)
 - [ ] 01-04-PLAN.md — Storage schema (migration v1), DB-location resolver, Db wrapper with PRAGMAs
 - [ ] 01-05-PLAN.md — Scanner with walkdir + ignore list + minimal config.edn :hidden reader
 - [ ] 01-06-PLAN.md — Indexer orchestrator (incremental + full reindex, per-file transactions)
