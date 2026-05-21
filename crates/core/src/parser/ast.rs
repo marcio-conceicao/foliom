@@ -26,13 +26,13 @@
 use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
 use unicode_normalization::UnicodeNormalization;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum RefKind {
     PageLink,
     Tag,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ExtractedRef {
     pub kind: RefKind,
     pub target: String,
