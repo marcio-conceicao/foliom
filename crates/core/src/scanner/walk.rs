@@ -1,4 +1,4 @@
-//! Stub — implemented in Task 2.
+//! Stub — implemented in Task 2 GREEN.
 #![allow(dead_code)]
 
 use std::path::PathBuf;
@@ -16,5 +16,6 @@ pub fn walk<'a>(
     _root: &std::path::Path,
     _ignore: &'a IgnoreSet,
 ) -> impl Iterator<Item = ScanEntry> + 'a {
-    std::iter::empty()
+    let v: Vec<ScanEntry> = Vec::new();
+    v.into_iter()
 }

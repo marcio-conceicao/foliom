@@ -25,9 +25,8 @@ rusqlite = { version = "0.39", features = ["bundled-full"] }
 # at the `libsqlite3-sys` native link with our 0.39. 2.5 supports rusqlite 0.39.
 rusqlite_migration = "2.5"
 tracing = "0.1"
-
-# walkdir is used by the round-trip test (tests/roundtrip.rs) to enumerate
-# the sample corpus. Pinned to 2.5 per D-17.
-[dev-dependencies]
+# Promoted from dev-dep in Plan 01-05: now used by scanner::walk (D-17).
 walkdir = "2.5"
+
+[dev-dependencies]
 tempfile = "3"
