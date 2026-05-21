@@ -19,12 +19,12 @@
 
 ### Parser (PRS)
 
-- [ ] **PRS-01**: A page is parsed into a tree of blocks (bullets nested by TAB indentation).
-- [ ] **PRS-02**: Block ≠ line. Lines beneath a bullet with **2-space continuation** belong to the same block; the parser preserves code fences (` ``` `) embedded inside a bullet.
-- [ ] **PRS-03**: Parsing is two-stage: (a) line-based outliner segmenter respecting TAB indent and 2-space continuation; (b) CommonMark/GFM per-block. Each block is a mini-document.
+- [x] **PRS-01**: A page is parsed into a tree of blocks (bullets nested by TAB indentation).
+- [x] **PRS-02**: Block ≠ line. Lines beneath a bullet with **2-space continuation** belong to the same block; the parser preserves code fences (` ``` `) embedded inside a bullet.
+- [x] **PRS-03**: Parsing is two-stage: (a) line-based outliner segmenter respecting TAB indent and 2-space continuation; (b) CommonMark/GFM per-block. Each block is a mini-document.
 - [ ] **PRS-04**: Tag/link extraction reads the CommonMark AST and considers only text nodes — ignoring ATX headings (`# Título`), code blocks, hex colors (`#fff`), and URLs.
-- [ ] **PRS-05**: Block properties (`key:: value`, including `id::`, `collapsed::`, `alias::`, `template::`, `logseq.order-list-type::`, `file::`) are preserved opaquely — parsed into a per-block `properties` slot, never rendered, written back at canonical position.
-- [ ] **PRS-06**: Logseq drawers (`:LOGBOOK:` / `:END:`) are preserved opaquely attached to the parent block — never reformatted, never dropped.
+- [x] **PRS-05**: Block properties (`key:: value`, including `id::`, `collapsed::`, `alias::`, `template::`, `logseq.order-list-type::`, `file::`) are preserved opaquely — parsed into a per-block `properties` slot, never rendered, written back at canonical position.
+- [x] **PRS-06**: Logseq drawers (`:LOGBOOK:` / `:END:`) are preserved opaquely attached to the parent block — never reformatted, never dropped.
 - [ ] **PRS-07**: The parser round-trips byte-identical on (a) the committed synthetic Logseq corpus in `crates/core/tests/fixtures/logseq-synthetic/` (CI gate, no PII) and (b) the opt-in real corpus at `data-folder-sample/Logseq/` when present locally (gitignored — PII). (See ACPT-01.)
 
 ### Linking & Navigation (LNK)
@@ -126,12 +126,12 @@
 | IDX-06 | Phase 1 | Pending |
 | IDX-07 | Phase 1 | Pending |
 | IDX-08 | Phase 1 | Pending |
-| PRS-01 | Phase 1 | Pending |
-| PRS-02 | Phase 1 | Pending |
-| PRS-03 | Phase 1 | Pending |
+| PRS-01 | Phase 1 | Complete |
+| PRS-02 | Phase 1 | Complete |
+| PRS-03 | Phase 1 | Complete |
 | PRS-04 | Phase 1 | Pending |
-| PRS-05 | Phase 1 | Pending |
-| PRS-06 | Phase 1 | Pending |
+| PRS-05 | Phase 1 | Complete |
+| PRS-06 | Phase 1 | Complete |
 | PRS-07 | Phase 1 | Pending |
 | ACPT-01 | Phase 1 | Pending |
 | ACPT-04 | Phase 1 | Pending |
