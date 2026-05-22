@@ -55,7 +55,7 @@
 
 ### Persistence & Sync (SNC)
 
-- [ ] **SNC-01**: Edits are persisted by byte-splicing the changed block's bytes into the original file buffer at `(byte_offset, byte_length)`; unchanged portions of the file remain byte-identical.
+- [x] **SNC-01**: Edits are persisted by byte-splicing the changed block's bytes into the original file buffer at `(byte_offset, byte_length)`; unchanged portions of the file remain byte-identical.
 - [x] **SNC-02**: File writes are atomic (write to temp + rename) and registered in a self-write set (hash of the just-written content with TTL) so the watcher does not re-trigger reindex for own writes.
 - [ ] **SNC-03**: A filesystem watcher (`notify-debouncer-full` `RecommendedCache`) detects external changes with ~250–500ms per-path debounce and refreshes both the index and the UI; survives atomic-rename saves from VS Code/Obsidian and bulk events from Syncthing/git.
 - [ ] **SNC-04**: Recursive watch is at the parent-directory level (not per-file) to avoid Linux inotify exhaustion; Windows `ReadDirectoryChangesW` overflow and macOS `MustScanSubDirs` trigger a rescan fallback.

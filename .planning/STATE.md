@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-last_updated: "2026-05-22T06:12:07.830Z"
+status: Phase 3 plans 03-01 and 03-02 executed — awaiting plan 03-03 (mutation REST handlers will compose splice_block + atomic_write_md)
+last_updated: "2026-05-22T06:18:48.022Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 22
-  completed_plans: 16
-  percent: 73
+  completed_plans: 17
+  percent: 77
 ---
 
 # Foliom — Project State
@@ -30,9 +30,9 @@ progress:
 
 - **Milestone:** v1
 - **Phase:** 3 — Outliner Editor (in progress, 1 of 7 plans landed: 03-01).
-- **Plan:** 03-01 complete (SNC-02: `crates/core::sync::atomic_write_md` same-FS temp+rename with Windows AV retry; `SelfWriteSet` dashmap-backed registry, DEFAULT_TTL 30s; `tempfile` promoted to runtime dep + `dashmap = "6"` added to workspace).
-- **Status:** Phase 3 plan 03-01 executed — awaiting plan 03-02 (mutation::splice + tree_ops scaffolding already on disk from concurrent process)
-- **Progress:** [███████░░░] 73%
+- **Plan:** 03-02 complete (SNC-01: `crates/core::mutation::splice_block` + `compute_shifted_offsets` pure byte-splice math; `TreeOp` enum with invertible `apply()` covering Indent/Outdent/Merge/Split/Move/Delete; `MutableTree`/`BlockSnapshot` in-memory representation; 28 tests green including 49-instance round-trip noop over 11 synthetic fixtures). Ran in wave 1 parallel with 03-01.
+- **Status:** Phase 3 plans 03-01 and 03-02 executed — awaiting plan 03-03 (mutation REST handlers will compose splice_block + atomic_write_md)
+- **Progress:** [████████░░] 82%
 
 ---
 
@@ -56,6 +56,7 @@ progress:
 | Phase 02 P07 | 18m | 2 tasks | 8 files |
 | Phase 02 P08 | 35m | 2 tasks | 12 files |
 | Phase 03 P01 | 35min | 2 tasks | 9 files |
+| Phase 03 P02 | 25min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,10 @@ progress:
 - (Plan 02-08) Bench skips gracefully when `/tmp/synth-5k` is missing (eprintln + early return) so `cargo bench` on a fresh clone never fails before the dev runs `foliom-bench-gen`. CI generates the corpus in a dedicated step before `cargo bench`.
 - (Plan 02-08) `scripts/bench_assert.py` is strict-less-than: equality with the ceiling FAILS the gate. Has its own 4-case unittest (`scripts/test_bench_assert.py`) covering pass/fail/exact-ceiling/missing-file branches.
 - (Plan 02-08) CI matrix restructured: Node-before-Rust (so rust-embed picks up real `frontend/dist/`); bundle-size gate (600 KB ceiling, runs on every OS); Phase 2 E2E smoke step (`serve` → /api/health + /api/pages → kill) on Linux/macOS/Windows; new `bench` job (Linux-only, `needs: test`) builds release artifacts + generates 5k corpus + runs cold-start bench + RSS probe + asserts ACPT-02 (<3s via bench_assert.py) and ACPT-03 (<450MB via bench-rss) + uploads Criterion report as 14-day artifact. Swatinem/rust-cache shared-key bumped phase1 → phase2 (lock file changed materially).
+- (Plan 03-02) Mutation module is pure-logic (no IO/HTTP/SQL). `splice_block` + `compute_shifted_offsets` form the SNC-01 byte-splice foundation; 6 invertible `TreeOp` variants form the D-30-05 hybrid-undo foundation. Plan 03-03's REST handlers compose these with plan 03-01's `atomic_write_md`.
+- (Plan 03-02) `BlockSnapshot` extended with `reparented_children: Vec<i64>` (Rule 2 deviation) — required for invertible `Delete` on a block with children. `#[serde(default)]` preserves wire compatibility.
+- (Plan 03-02) `Merge` uses pure byte concat (no `\n` separator) so `Split` is the exact byte-slice inverse. Earlier prototype inserted a separator newline + auto-stripped on split — broke invertibility for blocks whose raw already ended in `\n`. Caught by `merge_then_inverse_restores_tree` + `split_then_inverse_restores_tree`.
+- (Plan 03-02) `Merge` closes the ord gap left by the removed sibling; without this, downstream `Split` inverse shifted siblings further right and the round-trip diverged.
 - (Plan 02-08) bench-rss env override surface for test/CI hygiene: `FOLIOM_BENCH_PORT` (default 7350), `FOLIOM_BENCH_CEILING_MB` (default 450), `FOLIOM_BENCH_FOLIOM` (binary path override). Binary resolver: env override → sibling of current_exe (works under target/release/) → `./target/release/foliom` fallback. Cross-platform via `cfg!(windows)` for the `.exe` suffix.
 - (Plan 02-08) PERF-BASELINE.md records first measurements: WSL2 cold start = 12.20s (above 3s ceiling — EXPECTED hardware delta vs the M1-class PRD reference; CI runs on ubuntu-latest where the ceiling should hold), RSS = 49 MB (well below 300 MB target), bundle = 248 KB (well below 600 KB ceiling). Drift table inline; new rows appended (never overwritten) when metrics drift ≥10%.
 - (Plan 02-08) `cargo nextest` not installed locally; verified via `cargo test --workspace --no-fail-fast` (all 17 test binaries green). CI installs nextest via `taiki-e/install-action@nextest` so this affects only local verification.

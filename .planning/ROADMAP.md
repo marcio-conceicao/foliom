@@ -73,7 +73,7 @@
   6. Portability check (ACPT-05): `.md` files written by Foliom open without warnings or visible diffs in Obsidian and VS Code, on a corpus exercised by real edits across this phase.
 **Plans**: 7 plans
 - [x] 03-01-PLAN.md — Atomic write + SelfWriteSet (sync foundation; dashmap + tempfile promotion)
-- [ ] 03-02-PLAN.md — Mutation engine pure logic (splice_block + TreeOp invertible apply)
+- [x] 03-02-PLAN.md — Mutation engine pure logic (splice_block + TreeOp invertible apply)
 - [ ] 03-03-PLAN.md — Mutation REST endpoints (PUT/POST/PATCH/DELETE /api/blocks + conflict detection)
 - [ ] 03-04-PLAN.md — CM6 frontend: mount/unmount, IME guard, boundary keymap, history per-instance, treeOpLog
 - [ ] 03-05-PLAN.md — Autocomplete + bullet popover + paste detection + treeOp inverse wiring
@@ -111,7 +111,7 @@
 |-------|----------------|--------|-----------|
 | 1. Headless Indexing Core | 7/7 | Complete   | 2026-05-22 |
 | 2. Read-Only Web UI | 0/8 | Not started | - |
-| 3. Outliner Editor | 0/0 | Not started | - |
+| 3. Outliner Editor | 2/7 | In Progress|  |
 | 4. Disk Sync | 0/0 | Not started | - |
 | 5. Desktop Packaging | 0/0 | Not started | - |
 
