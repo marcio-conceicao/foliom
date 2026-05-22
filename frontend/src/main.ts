@@ -4,6 +4,7 @@ import './styles/global.css';
 import './styles/sidebar.css';
 import './styles/blocks.css';
 import './styles/prism-foliom.css';
+import './styles/palette.css';
 import { installZoomListener } from './lib/zoom';
 
 installZoomListener();

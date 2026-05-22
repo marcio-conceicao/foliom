@@ -1,0 +1,94 @@
+/* Search palette (SCH-03) — modal chrome + result list.
+ *
+ * Theme-aware via the same CSS variables consumed by Sidebar/Block
+ * (`--bg`, `--fg`, `--guide-color`, `--code-bg`, `--link-color`).
+ */
+
+.palette-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  z-index: 1000;
+}
+
+.palette-panel,
+.palette-inline {
+  width: min(640px, 92vw);
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--guide-color);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.palette-inline {
+  margin: 0 auto;
+}
+
+.palette-input {
+  appearance: none;
+  border: 0;
+  border-bottom: 1px solid var(--guide-color);
+  background: transparent;
+  color: var(--fg);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  outline: none;
+}
+
+.palette-results {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.palette-results .result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+
+.palette-results .result.active {
+  background: var(--code-bg);
+  border-left-color: var(--link-color);
+}
+
+.palette-results .result .page {
+  font-weight: 600;
+  color: var(--link-color);
+}
+
+.palette-results .result .snippet {
+  font-size: 0.88rem;
+  opacity: 0.85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-results .result .snippet mark {
+  background: rgba(255, 215, 0, 0.45);
+  color: inherit;
+  padding: 0 0.1em;
+  border-radius: 0.15em;
+}
+
+.palette-results .empty {
+  padding: 0.6rem 1rem;
+  opacity: 0.6;
+  font-style: italic;
+}

@@ -10,9 +10,13 @@
   // searchPalette modal — leave the footer slot open for that.
 
   import { fetchPages, type PageSummary } from '../api';
-  import { sidebarPages } from '../stores';
+  import { sidebarPages, searchPalette } from '../stores';
   import JournalNavigator from './JournalNavigator.svelte';
   import ThemeToggle from './ThemeToggle.svelte';
+
+  function openSearch(): void {
+    searchPalette.set({ open: true, query: '' });
+  }
 
   let pages = $state<PageSummary[]>([]);
   let error = $state<string | null>(null);
@@ -133,6 +137,10 @@
   {/if}
 
   <footer class="footer">
+    <button class="search-trigger" type="button" onclick={openSearch}>
+      <span>Buscar</span>
+      <kbd>Ctrl+K</kbd>
+    </button>
     <ThemeToggle />
   </footer>
 </nav>
@@ -197,6 +205,29 @@
     margin-top: auto;
     border-top: 1px solid var(--guide-color);
     padding-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .search-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--code-bg);
+    color: var(--fg);
+    border: 1px solid var(--guide-color);
+    border-radius: 0.3rem;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .search-trigger:hover {
+    border-color: var(--link-color);
+  }
+  .search-trigger kbd {
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+    opacity: 0.7;
   }
   .error {
     color: #c33;

@@ -1,56 +1,44 @@
 <script lang="ts">
-  import { fetchSearch, type SearchHit, type SearchKind } from '../api';
+  // SearchView — `/#/search?q=…&kind=…` deep-link route. Reuses the
+  // palette body in `mode='inline'` so shared URLs render the same UX
+  // as the modal palette, sans backdrop and centering chrome.
+  //
+  // svelte-spa-router strips the route hash before delegating; we read
+  // `window.location.hash` directly so we can recover the `?q=` and
+  // `?kind=` query string the router doesn't expose for hash routes.
 
-  let hits = $state<SearchHit[] | null>(null);
-  let error = $state<string | null>(null);
-  let queryParam = $state<string>('');
+  import { searchPalette } from '../stores';
+  import SearchPalette from '../components/SearchPalette.svelte';
 
-  function readQuery(): { q: string; kind: SearchKind | undefined } {
-    // svelte-spa-router strips the hash; we read window.location.hash directly.
-    // Format expected: `#/search?q=foo&kind=tag`
+  function readQuery(): string {
     const hash = window.location.hash;
     const queryIndex = hash.indexOf('?');
-    if (queryIndex === -1) return { q: '', kind: undefined };
+    if (queryIndex === -1) return '';
     const params = new URLSearchParams(hash.slice(queryIndex + 1));
-    const kind = params.get('kind');
-    return {
-      q: params.get('q') ?? '',
-      kind: kind === 'tag' || kind === 'content' ? kind : undefined,
-    };
+    return params.get('q') ?? '';
   }
 
+  // Pre-populate the shared `searchPalette` store so the inline palette
+  // body shows the deep-linked query without re-typing.
   $effect(() => {
-    const { q, kind } = readQuery();
-    queryParam = q;
-    hits = null;
-    error = null;
-    if (!q) {
-      hits = [];
-      return;
-    }
-    fetchSearch(q, kind)
-      .then((h) => {
-        hits = h;
-      })
-      .catch((e: unknown) => {
-        error = e instanceof Error ? e.message : String(e);
-      });
+    const q = readQuery();
+    searchPalette.update((s) => ({ ...s, query: q }));
   });
 </script>
 
-<section>
+<section class="search-view">
   <h1>Busca</h1>
-  <p>Consulta: <code>{queryParam || '(vazia)'}</code></p>
-  {#if error}
-    <p class="error">Erro: {error}</p>
-  {:else if hits === null}
-    <p>Carregando…</p>
-  {:else}
-    <pre>{JSON.stringify(hits, null, 2)}</pre>
-  {/if}
+  <SearchPalette mode="inline" />
 </section>
 
 <style>
-  .error { color: #c33; }
-  pre { font-family: ui-monospace, monospace; font-size: 0.85rem; overflow: auto; }
+  .search-view {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .search-view h1 {
+    font-size: 1.2rem;
+    margin: 0 0 0.6rem;
+    opacity: 0.85;
+  }
 </style>
