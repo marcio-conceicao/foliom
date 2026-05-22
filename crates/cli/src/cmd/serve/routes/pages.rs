@@ -1,9 +1,11 @@
 //! `/api/pages*` handlers.
 //!
-//! Three routes:
-//!   - `GET /api/pages`                 → flat list (`PageSummary[]`).
-//!   - `GET /api/pages/:name`           → nested block tree (`PageDetail`).
-//!   - `GET /api/pages/:name/backlinks` → `Backlink[]`.
+//! Routes:
+//!   - `GET    /api/pages`                 → flat list (`PageSummary[]`).
+//!   - `POST   /api/pages`                 → create a new page.
+//!   - `GET    /api/pages/:name`           → nested block tree (`PageDetail`).
+//!   - `GET    /api/pages/:name/backlinks` → `Backlink[]`.
+//!   - `POST   /api/pages/:name/rename`    → rename + optional backlink rewrite.
 //!
 //! All DB work runs inside `tokio::task::spawn_blocking` per D-25 — rusqlite
 //! is synchronous and would otherwise stall the single-threaded runtime.
@@ -12,6 +14,11 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::Json;
 use rusqlite::{Connection, params};
+
+use foliom_core::indexer::{ReindexMode, reindex};
+use foliom_core::path::RelativePath;
+use foliom_core::rename::{RenameError, validate_page_name};
+use foliom_core::sync::atomic_write_md;
 
 use crate::cmd::serve::dto::{Backlink, Block, DrawerRef, PageDetail, PageSummary};
 use crate::cmd::serve::format::{format_journal_title, parse_journal_name};
@@ -331,3 +338,211 @@ pub async fn backlinks(
 
     Ok(Json(rows))
 }
+
+// ─── Plan 03-06: page create + rename endpoints ───────────────────────────────
+
+/// Request body for `POST /api/pages`.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreatePageRequest {
+    pub name: String,
+}
+
+/// Request body for `POST /api/pages/:name/rename`.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RenamePageRequest {
+    pub new_name: String,
+    pub rewrite_backlinks: bool,
+}
+
+/// Response body for `POST /api/pages/:name/rename`.
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RenamePageResponse {
+    pub rewritten_count: u32,
+    pub warnings: Vec<String>,
+}
+
+/// `POST /api/pages` — create a new empty page (D-30-03 / LNK-04).
+///
+/// If `name` matches `YYYY_MM_DD`, the file lands in `journals/`; otherwise
+/// `pages/`. The file is created with exactly `- \n` (3 bytes — a single empty
+/// bullet as per 03-RESEARCH §Empty-file convention).
+pub async fn create_page(
+    State(state): State<AppState>,
+    Json(req): Json<CreatePageRequest>,
+) -> Result<(StatusCode, Json<PageSummary>), (StatusCode, Json<crate::cmd::serve::dto::ErrorResponse>)> {
+    // Validate name (T-03-21).
+    if let Err(e) = validate_page_name(&req.name) {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(crate::cmd::serve::dto::ErrorResponse {
+                error: e.to_string(),
+                current_file_hash: None,
+            }),
+        ));
+    }
+
+    let name = req.name.clone();
+    let db = state.db.clone();
+    let root = state.root.clone();
+    let self_writes = state.self_writes.clone();
+
+    let summary = tokio::task::spawn_blocking(move || -> Result<PageSummary, String> {
+        // Determine the subdirectory.
+        let is_journal = is_journal_name(&name);
+        let subdir = if is_journal { "journals" } else { "pages" };
+        let rel_path_str = format!("{}/{}.md", subdir, name);
+        let abs_path = RelativePath::from_storage_str(&rel_path_str).to_filesystem(&root);
+
+        // Create parent dir if needed.
+        if let Some(parent) = abs_path.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("create dir: {e}"))?;
+        }
+
+        // Write `- \n` (3 bytes: hyphen, space, newline).
+        atomic_write_md(&abs_path, b"- \n", &self_writes)
+            .map_err(|e| format!("write file: {e}"))?;
+
+        // Synchronous single-file reindex.
+        let mut db_guard = db.lock().expect("db poisoned");
+        reindex(&mut *db_guard, &root, ReindexMode::Incremental)
+            .map_err(|e| format!("reindex: {e}"))?;
+
+        Ok(PageSummary {
+            name: name.clone(),
+            is_journal,
+            is_resolved: true,
+        })
+    })
+    .await
+    .map_err(|e| {
+        tracing::error!(error = %e, "join error in POST /api/pages");
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(crate::cmd::serve::dto::ErrorResponse {
+                error: "internal error".into(),
+                current_file_hash: None,
+            }),
+        )
+    })?
+    .map_err(|e| {
+        tracing::error!(error = %e, "error in POST /api/pages");
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(crate::cmd::serve::dto::ErrorResponse {
+                error: e,
+                current_file_hash: None,
+            }),
+        )
+    })?;
+
+    Ok((StatusCode::CREATED, Json(summary)))
+}
+
+/// `POST /api/pages/:name/rename` — rename a page with optional backlink rewrite.
+///
+/// Returns `200 { rewrittenCount, warnings }` on success.
+/// Returns `409 { error: "target exists" }` if the target name is a backed page.
+/// Returns `400 { error: "..." }` for invalid names.
+pub async fn rename_page_handler(
+    State(state): State<AppState>,
+    Path(name): Path<String>,
+    Json(req): Json<RenamePageRequest>,
+) -> Result<Json<RenamePageResponse>, (StatusCode, Json<crate::cmd::serve::dto::ErrorResponse>)> {
+    if let Err(e) = validate_page_name(&req.new_name) {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(crate::cmd::serve::dto::ErrorResponse {
+                error: e.to_string(),
+                current_file_hash: None,
+            }),
+        ));
+    }
+
+    let db = state.db.clone();
+    let root = state.root.clone();
+    let journal = state.journal.clone();
+    let self_writes = state.self_writes.clone();
+    let new_name = req.new_name.clone();
+    let rewrite_backlinks = req.rewrite_backlinks;
+
+    let result = tokio::task::spawn_blocking(move || {
+        let mut db_guard = db.lock().expect("db poisoned");
+        let conn = db_guard.conn_mut();
+        foliom_core::rename::rename_page(
+            conn,
+            &root,
+            &journal,
+            &self_writes,
+            &name,
+            &new_name,
+            rewrite_backlinks,
+        )
+    })
+    .await
+    .map_err(|e| {
+        tracing::error!(error = %e, "join error in POST /api/pages/:name/rename");
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(crate::cmd::serve::dto::ErrorResponse {
+                error: "internal error".into(),
+                current_file_hash: None,
+            }),
+        )
+    })?;
+
+    match result {
+        Ok(r) => Ok(Json(RenamePageResponse {
+            rewritten_count: r.rewritten_count,
+            warnings: r.warnings,
+        })),
+        Err(RenameError::TargetExists(_)) => Err((
+            StatusCode::CONFLICT,
+            Json(crate::cmd::serve::dto::ErrorResponse {
+                error: "target exists".into(),
+                current_file_hash: None,
+            }),
+        )),
+        Err(RenameError::NotFound(n)) => Err((
+            StatusCode::NOT_FOUND,
+            Json(crate::cmd::serve::dto::ErrorResponse {
+                error: format!("page '{n}' not found"),
+                current_file_hash: None,
+            }),
+        )),
+        Err(RenameError::InvalidName(msg)) => Err((
+            StatusCode::BAD_REQUEST,
+            Json(crate::cmd::serve::dto::ErrorResponse {
+                error: msg,
+                current_file_hash: None,
+            }),
+        )),
+        Err(e) => {
+            tracing::error!(error = %e, "rename error");
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(crate::cmd::serve::dto::ErrorResponse {
+                    error: e.to_string(),
+                    current_file_hash: None,
+                }),
+            ))
+        }
+    }
+}
+
+/// Detect if `name` matches the journal format `YYYY_MM_DD`.
+pub fn is_journal_name(name: &str) -> bool {
+    if name.len() != 10 {
+        return false;
+    }
+    let bytes = name.as_bytes();
+    bytes[0..4].iter().all(|b| b.is_ascii_digit())
+        && bytes[4] == b'_'
+        && bytes[5..7].iter().all(|b| b.is_ascii_digit())
+        && bytes[7] == b'_'
+        && bytes[8..10].iter().all(|b| b.is_ascii_digit())
+}
+

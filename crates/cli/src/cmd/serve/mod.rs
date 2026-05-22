@@ -28,6 +28,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::{Context, Result};
 use clap::Args;
 use foliom_core::indexer::{ReindexMode, reindex};
+use foliom_core::rename::{Journal, replay_journal};
 use foliom_core::storage::Db;
 use foliom_core::sync::SelfWriteSet;
 use tokio::net::TcpListener;
@@ -83,11 +84,25 @@ pub fn run(args: ServeArgs) -> Result<()> {
     );
 
     // ---- 3. Build shared state + router ----
+    // Open the rename journal and replay any pending entries from a previous
+    // crashed run (T-03-20 crash recovery — must run BEFORE axum starts
+    // accepting requests).
+    let journal = Arc::new(
+        Journal::open_for_root(&args.root)
+            .with_context(|| format!("abrindo rename journal para {:?}", args.root))?,
+    );
+
+    let self_writes = Arc::new(SelfWriteSet::default());
+
     let state = AppState {
         db: Arc::new(Mutex::new(db)),
         root: args.root.clone(),
-        self_writes: Arc::new(SelfWriteSet::default()),
+        self_writes: self_writes.clone(),
+        journal: journal.clone(),
     };
+
+    // Replay journal BEFORE reindex so file state is consistent.
+    replay_journal(&state).with_context(|| "replay do rename journal no startup")?;
     let app = build_router(state);
 
     // ---- 4. Bind loopback with fallback ----

@@ -71,10 +71,14 @@ fn build_state(
     let mut db = Db::open(root).expect("open db");
     reindex(&mut db, root, ReindexMode::Full).expect("reindex");
     let self_writes = Arc::new(SelfWriteSet::new(Duration::from_secs(30)));
+    let journal = Arc::new(
+        foliom_core::rename::Journal::open_for_root(root).expect("journal open"),
+    );
     let state = foliom_cli::cmd::serve::state::AppState {
         db: Arc::new(Mutex::new(db)),
         root: root.to_path_buf(),
         self_writes: self_writes.clone(),
+        journal,
     };
     (state, self_writes)
 }

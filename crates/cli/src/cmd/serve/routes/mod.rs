@@ -28,10 +28,12 @@ pub fn build_router(state: AppState) -> Router {
     Router::new()
         // Liveness probe (plan 02-01).
         .route("/api/health", get(health::get))
-        // Page surface (plan 02-02).
+        // Page surface (plan 02-02 + 03-06).
         .route("/api/pages", get(pages::list))
+        .route("/api/pages", post(pages::create_page))
         .route("/api/pages/:name", get(pages::detail))
         .route("/api/pages/:name/backlinks", get(pages::backlinks))
+        .route("/api/pages/:name/rename", post(pages::rename_page_handler))
         .route("/api/page-titles", get(titles::list))
         // Journals (plan 02-02).
         .route("/api/journals/today", get(journals::today))

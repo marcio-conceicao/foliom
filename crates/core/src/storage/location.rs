@@ -30,6 +30,21 @@ use unicode_normalization::UnicodeNormalization;
 
 use super::StorageError;
 
+/// Resolve the rename-journal path for the given notes-root.
+///
+/// Lives next to the DB file: `<foliom_dir>/<root-hash>.rename-journal`.
+pub fn resolve_journal_path(notes_root: &Path) -> Result<PathBuf, StorageError> {
+    let abs = notes_root.canonicalize()?;
+    let with_forward_slash = abs.to_string_lossy().replace('\\', "/");
+    let nfc: String = with_forward_slash.nfc().collect();
+    let hash = blake3::hash(nfc.as_bytes());
+    let hex16: String = hash.to_hex().as_str().chars().take(16).collect();
+    let base_dir = data_dir()?;
+    let foliom_dir = base_dir.join("foliom");
+    std::fs::create_dir_all(&foliom_dir)?;
+    Ok(foliom_dir.join(format!("{}.rename-journal", hex16)))
+}
+
 /// Resolve the SQLite DB path for the given notes-root.
 ///
 /// Side effect: creates the parent `foliom/` directory if it does not exist.

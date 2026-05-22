@@ -10,6 +10,7 @@ pub mod mutation;
 pub mod parser;
 pub mod path;
 pub mod query;
+pub mod rename;
 pub mod scanner;
 pub mod storage;
 pub mod sync;

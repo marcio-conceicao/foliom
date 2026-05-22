@@ -7,8 +7,12 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
+use foliom_core::rename::Journal;
 use foliom_core::storage::Db;
 use foliom_core::sync::SelfWriteSet;
+
+use std::path::Path;
+use foliom_core::rename::RenameState;
 
 /// Cloneable handle to the shared backend state.
 ///
@@ -29,4 +33,22 @@ pub struct AppState {
     /// Plan 03-03 mutation handlers call `self_writes.register` (via
     /// `atomic_write_md`) BEFORE the rename so the watcher cannot race ahead.
     pub self_writes: Arc<SelfWriteSet>,
+    /// Write-ahead journal for rename operations. Shared across handlers.
+    /// Plan 03-06 crash recovery: appended before SQL commit, replayed on boot.
+    pub journal: Arc<Journal>,
+}
+
+impl RenameState for AppState {
+    fn db(&self) -> &Arc<Mutex<Db>> {
+        &self.db
+    }
+    fn root(&self) -> &Path {
+        &self.root
+    }
+    fn journal(&self) -> &Arc<Journal> {
+        &self.journal
+    }
+    fn self_writes(&self) -> &Arc<SelfWriteSet> {
+        &self.self_writes
+    }
 }
