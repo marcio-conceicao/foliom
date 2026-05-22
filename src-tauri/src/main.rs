@@ -10,7 +10,7 @@
 //!   4. Aguarda `BOUND_PORT` OnceLock (D-50-02, Pitfall 3): polling com 20ms
 //!      de sleep, timeout de 5 s (250 tentativas).
 //!   5. Abre a janela WebView apontando para `http://127.0.0.1:<port>/`
-//!      usando `WebviewUrl::External` (NOT tauri-plugin-localhost — Critical Finding).
+//!      usando `WebviewUrl::External` (ver 05-RESEARCH Critical Finding — plugin excluído).
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
