@@ -51,9 +51,9 @@
   5. Cold start on a 5,000-note generated corpus completes in under 2 seconds (ACPT-02) and idle RSS stays under 300 MB (ACPT-03) on the reference laptop, with only visible content held in memory.
 **Plans**: 8 plans
 - [x] 02-01-PLAN.md — `foliom serve` scaffold: axum 0.7 on 127.0.0.1, startup reindex, Host allowlist, /api/health
-- [ ] 02-02-PLAN.md — REST API: pages, page detail (nested tree), backlinks, journals (today + range), search (FTS5 + tag-refs), page-titles
+- [x] 02-02-PLAN.md — REST API: pages, page detail (nested tree), backlinks, journals (today + range), search (FTS5 + tag-refs), page-titles
 - [x] 02-03-PLAN.md — Frontend scaffold: Svelte 5 + Vite + TS + svelte-spa-router + stores + api wrappers + vitest
-- [ ] 02-04-PLAN.md — Block renderer: markdown-it custom rules ([[link]]/#tag/#[[tag]]) + Prism + GFM + indent guides + fold + block zoom
+- [x] 02-04-PLAN.md — Block renderer: markdown-it custom rules ([[link]]/#tag/#[[tag]]) + Prism + GFM + indent guides + fold + block zoom
 - [ ] 02-05-PLAN.md — Sidebar + journal navigator + theme toggle + backlinks panel + unresolved chip styling
 - [ ] 02-06-PLAN.md — Search palette (Ctrl/Cmd+K) with FTS5 + tag-refs + page-title routing + click-to-block deep links
 - [ ] 02-07-PLAN.md — rust-embed prod build + dev-redirect to Vite + --open flag + SPA fallback

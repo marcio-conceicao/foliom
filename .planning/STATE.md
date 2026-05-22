@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 2 plan 02-02 executed
-last_updated: "2026-05-22T02:42:00.000Z"
+status: Phase 2 plan 02-04 executed
+last_updated: "2026-05-22T02:55:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 15
-  completed_plans: 11
-  percent: 73
+  completed_plans: 12
+  percent: 80
 ---
 
 # Foliom — Project State
@@ -29,10 +29,10 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 2 — Read-Only Web UI (in progress, 3 of 8 plans complete: 02-01, 02-02, 02-03)
-- **Plan:** 02-02 complete (REST API: pages/journals/search/titles); next is 02-04 (markdown renderer)
-- **Status:** Phase 2 plan 02-02 executed
-- **Progress:** [███████░░░] 73%
+- **Phase:** 2 — Read-Only Web UI (in progress, 4 of 8 plans complete: 02-01, 02-02, 02-03, 02-04)
+- **Plan:** 02-04 complete (per-block markdown renderer + foliom inline rules + Prism + Block zoom); next is 02-05 (sidebar + dark-mode toggle + backlinks panel)
+- **Status:** Phase 2 plan 02-04 executed
+- **Progress:** [████████░░] 80%
 
 ---
 
@@ -50,6 +50,7 @@ progress:
 | Phase 01 P07 | 25 | 5 tasks | 17 files |
 | Phase 02 P01 | 16m | 2 tasks | 11 files |
 | Phase 02 P03 | 10 | 2 tasks | 23 files |
+| Phase 02 P04 | 12m | 2 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,13 @@ progress:
 - (Plan 02-01) HTTP scaffold: `foliom serve <root>` on 127.0.0.1:7345 via axum 0.7 + tokio current_thread + `Arc<Mutex<Db>>` shared state (D-22..D-25, D-38). Host-header allowlist rejects DNS rebinding with 421 Misdirected Request (T-02-01 mitigation). Graceful shutdown via `tokio::signal::ctrl_c`. AddrInUse on requested port falls back to OS-assigned :0.
 - (Plan 02-02) REST surface live: 7 read-only endpoints (`/api/pages`, `/api/pages/:name`, `/api/pages/:name/backlinks`, `/api/page-titles`, `/api/journals/today`, `/api/journals?from&to`, `/api/search?q&kind&limit`). All handlers run DB work in `spawn_blocking` and bind via `params![]` (T-02-04). Search sanitization: empty after trim → `[]`, unquoted `:` rejected, backslashes stripped (T-02-05). `properties_json`/`drawers_json` are stored as normalized side tables (`block_props`/`block_drawers`), NOT JSON columns — detail handler joins per-page with prefetch (no N+1). `pages/Avaliação.md` fixture added for FTS5 UTF-8 snippet integrity (Pitfall 6); inventory pinned counts bumped scanned 11→12, pages 10→11.
 - (Plan 02-02) **axum 0.7 path-param syntax bug fixed**: workspace pins `axum = "0.7"` (matchit 0.7, `:name` syntax) but initial implementation used `{name}` (axum 0.8 / matchit 0.8 syntax) so detail/backlinks routes were treated as literal paths and every request hit axum's fallback 404 with content-length 0. Reverted to `:name`. Note for future: any axum 0.8 upgrade must flip this back.
+- (Plan 02-04) Heading suppression mechanism: chose **option 3** (post-process core ruler walking `heading_open → inline.children` and rewriting chip tokens to `text`). Option 1 (env flag in a block-rule wrapper) failed because markdown-it's inline pass runs after the block wrapper's `finally` clears the flag.
+- (Plan 02-04) Tag chip click destination = **search-by-tag** (`/search?q=#<tag>&kind=tag`) — Open Question 3 in 02-RESEARCH. No dedicated tag-page view in v1.
+- (Plan 02-04) `stripForRender` strips ALL leading TABs (matching `ast.rs::strip_segmenter_prefix` which is unbounded). `depth` arg only used for prelude detection (depth < 0).
+- (Plan 02-04) Vitest config needs `resolve.conditions = ['browser','svelte','development']` + `test.server.deps.inline = ['svelte']` so `mount()` resolves to Svelte's client entry under happy-dom. Without these, vitest picks the SSR entry and throws `lifecycle_function_unavailable`.
+- (Plan 02-04) Line-numbers: pure-CSS gutter band (no JS plugin). Per-line digits deferred. UI-04's `.line-numbers` class contract is satisfied so a future enhancement can layer numbers on top without touching markdown.
+- (Plan 02-04) Unresolved page-link styling deferred to plan 02-05 (waits for `sidebarPages`).
+- (Plan 02-04) 1000-block render time in happy-dom = 705ms vs 2000ms ceiling. Real-browser aspirational target is <100ms per A7.
 
 ### Open Decisions (PRD §12)
 
@@ -89,6 +97,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Completed Phase 1 Plan 06 — indexer orchestrator (`reindex(&mut db, &root, mode)`) stitching scanner + parser + storage with per-file SQLite transactions. 3 task commits + metadata commit, 114 workspace tests green (including 12 new integration tests), AP-1/AP-2/AP-5 guards clean. IDX-02/03/04/05/07 and PRS-04/05/06 satisfied.
-**Next action:** Plan 01-07 — CLI subcommands (`index`, `reindex`, `search`, `dump-tree`, `inventory`) wired to `indexer::reindex`, `storage::Db`, and parser. JSON output via `--json`. Pinned inventory snapshot against the synthetic corpus + CI matrix.
-**Resumption hint:** `indexer::reindex(&mut Db, &Path, ReindexMode) -> Result<ReindexStats, IndexerError>` is the entry point. `ReindexStats { scanned, added, modified, unchanged, mtime_touched, deleted }` is the JSON shape (already derives Debug/Clone/PartialEq/Eq — add `serde::Serialize` when Plan 07 needs it). `Db::open(notes_root)` / `Db::open_at(db_path)` are the two ways to instantiate. Real-corpus run produces `ReindexStats { scanned: 620, added: 620, ... }` on first pass; second pass is idempotent.
+**Last action:** Completed Phase 2 Plan 04 — per-block markdown renderer with foliom inline rules (`compositeTag` / `pageLink` / `bareTag`), segmenter-prefix + property + drawer stripping, ATX heading suppression via post-process core ruler, Prism syntax highlighting with lang label + line-numbers gutter, recursive `Block.svelte` with fold (UI-only D-34) + delegated chip click handler, `PageHeader.svelte`, block zoom (LNK-07) via second-`#` sub-fragment, 1000-block soft perf gate (705ms vs 2000ms ceiling). 2 task commits + summary. 44 frontend tests green.
+**Next action:** Plan 02-05 — Sidebar + journal navigator + dark mode toggle + backlinks panel. Wires `sidebarPages` store to `<aside>`, adds the long-deferred unresolved `.page-link.unresolved` styling once that set is loaded, persistent theme toggle, backlinks panel under main content.
+**Resumption hint:** Block contract is locked: `Block.svelte` props `{ id, depth, raw, properties, drawers, children }`; rendering pipeline is `stripForRender → md.render → {@html}` (see `frontend/src/lib/components/Block.svelte`). Tag click destination = `/search?q=#<tag>&kind=tag` (plan 02-06 will own the search palette behavior side). `sidebarPages` Svelte store exists (plan 02-03) but is unused until 02-05. Block.svelte's `.page-link` class is currently neutral — toggle to `.page-link.unresolved` based on `sidebarPages` membership lookup.
