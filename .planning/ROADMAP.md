@@ -100,7 +100,7 @@
 **Depends on**: Phase 4
 **Requirements**: DSK-01, DSK-02, DSK-03
 **Success Criteria** (what must be TRUE):
-  1. A Tauri 2 desktop binary launches the same Svelte UI against the in-process axum server via `tauri-plugin-localhost`, with a folder picker for selecting the notes root; identical code path between web dev and desktop ship.
+  1. A Tauri 2 desktop binary launches the same Svelte UI against the in-process axum server via `WebviewUrl::External` (direct axum server URL), with a folder picker for selecting the notes root; identical code path between web dev and desktop ship.
   2. macOS and Windows installers are code-signed; macOS is notarized; CI produces release artifacts for both platforms.
   3. Footprint CI gate passes: installer < 30 MB, idle RSS < 150 MB on the 5,000-note corpus — materially smaller than an Electron-equivalent shell.
 **Plans**: 3 plans
