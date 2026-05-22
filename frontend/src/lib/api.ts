@@ -255,3 +255,63 @@ export async function resolveJournalToday(): Promise<string> {
   }
   return decodeURIComponent(match[1]);
 }
+
+// ─── Plan 03-06: Page create + rename ────────────────────────────────────────
+
+export interface RenamePageResponse {
+  rewrittenCount: number;
+  warnings: string[];
+}
+
+/**
+ * POST /api/pages — create a new empty page.
+ * If `name` matches YYYY_MM_DD, the page lands in journals/.
+ * The file is created with `- \n` (one empty bullet).
+ */
+export async function createPage(name: string): Promise<PageSummary> {
+  const res = await fetch('/api/pages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (res.status === 400) {
+    const body = (await res.json()) as { error: string };
+    const err = Object.assign(new Error(body.error), { status: 400 });
+    throw err;
+  }
+  if (!res.ok) {
+    throw Object.assign(
+      new Error(`Foliom API POST /api/pages → ${res.status} ${res.statusText}`),
+      { status: res.status },
+    );
+  }
+  return (await res.json()) as PageSummary;
+}
+
+/**
+ * POST /api/pages/:name/rename — rename a page with optional backlink rewrite.
+ * Throws with `status: 409` if the target name already exists as a backed page.
+ * Throws with `status: 400` if the new name is invalid.
+ */
+export async function renamePage(
+  oldName: string,
+  newName: string,
+  rewriteBacklinks: boolean,
+): Promise<RenamePageResponse> {
+  const res = await fetch(`/api/pages/${encodeURIComponent(oldName)}/rename`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ newName, rewriteBacklinks }),
+  });
+  if (res.status === 409 || res.status === 400) {
+    const body = (await res.json()) as { error: string };
+    throw Object.assign(new Error(body.error), { status: res.status });
+  }
+  if (!res.ok) {
+    throw Object.assign(
+      new Error(`Foliom API POST /api/pages/:name/rename → ${res.status} ${res.statusText}`),
+      { status: res.status },
+    );
+  }
+  return (await res.json()) as RenamePageResponse;
+}

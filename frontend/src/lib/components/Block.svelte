@@ -4,7 +4,7 @@
   import { md } from '../markdown';
   import { stripForRender } from '../markdown/strip';
   import type { Block as BlockData, MutationResponse, StaleConflict } from '../api';
-  import { putBlock, deleteBlock, postBlock, patchBlockStructure } from '../api';
+  import { putBlock, deleteBlock, postBlock, patchBlockStructure, createPage } from '../api';
   import { sidebarPages } from '../stores';
   import { currentlyEditing } from '../stores/editing';
   import { treeOpLog } from '../stores/treeOpLog';
@@ -347,12 +347,22 @@
     const t = event.target as HTMLElement | null;
     if (!t) return;
 
-    // Chip clicks take priority — don't enter edit mode
+    // Chip clicks take priority — don't enter edit mode.
+    // D-30-03: unresolved-link click silently creates the page and navigates.
     const pageEl = t.closest('[data-page]') as HTMLElement | null;
     if (pageEl) {
       event.preventDefault();
       const target = pageEl.dataset.page ?? '';
-      push('/pages/' + encodeURIComponent(target));
+      if (pageEl.classList.contains('unresolved')) {
+        // LNK-04: create the page silently then navigate.
+        createPage(target).catch(() => {
+          // If create fails (e.g. already exists from a race), still navigate.
+        }).finally(() => {
+          push('/pages/' + encodeURIComponent(target));
+        });
+      } else {
+        push('/pages/' + encodeURIComponent(target));
+      }
       return;
     }
     const tagEl = t.closest('[data-tag]') as HTMLElement | null;
