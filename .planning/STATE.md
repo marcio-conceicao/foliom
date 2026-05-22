@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 2 plan 02-06 executed
-last_updated: "2026-05-22T00:56:00.000Z"
+status: Phase 2 plan 02-07 executed
+last_updated: "2026-05-22T04:10:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 1
@@ -14,7 +14,7 @@ progress:
 
 # Foliom — Project State
 
-**Last updated:** 2026-05-22 (Plan 02-06 executed)
+**Last updated:** 2026-05-22 (Plan 02-07 executed)
 
 ---
 
@@ -29,9 +29,9 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 2 — Read-Only Web UI (in progress, 6 of 8 plans complete: 02-01, 02-02, 02-03, 02-04, 02-05, 02-06)
-- **Plan:** 02-06 complete (search palette Ctrl/Cmd+K + snippet sanitizer + #/search inline + Sidebar trigger); next is 02-07 (integration + smoke E2E)
-- **Status:** Phase 2 plan 02-06 executed
+- **Phase:** 2 — Read-Only Web UI (in progress, 7 of 8 plans complete: 02-01, 02-02, 02-03, 02-04, 02-05, 02-06, 02-07)
+- **Plan:** 02-07 complete (rust-embed 8.11 + mime_guess 2; debug 307→Vite, release single-binary embed with SPA fallback; --open wired); next is 02-08 (perf gates ACPT-02 cold start + ACPT-03 RAM)
+- **Status:** Phase 2 plan 02-07 executed
 - **Progress:** [█████████▎] 93%
 
 ---
@@ -53,6 +53,7 @@ progress:
 | Phase 02 P04 | 12m | 2 tasks | 16 files |
 | Phase 02 P05 | 7m | 2 tasks | 16 files |
 | Phase 02 P06 | 14m | 2 tasks | 11 files |
+| Phase 02 P07 | 18m | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,14 @@ progress:
 - (Plan 02-06) svelte-spa-router treats `#` as its own route boundary; foliom layers the `#block=N` sub-fragment on top via `push(target)` then a `requestAnimationFrame` callback that rewrites `window.location.hash` to include both segments. The 02-04 zoom listener picks up the hashchange and scrolls.
 - (Plan 02-06) Single `SearchPalette.svelte` with `mode='modal'|'inline'` prop instead of extracting a SearchPanel — keeps the test surface small and avoids prop-drilling. `SearchView.svelte` mounts it in inline mode and pre-populates the store query from `window.location.hash`.
 - (Plan 02-06) Frontend: 73/73 tests green (17 new), bundle 212.57 kB JS (87.74 kB gzip) + 12.60 kB CSS (2.98 kB gzip). +5.3 kB JS / +1.9 kB CSS vs 02-05 baseline.
+- (Plan 02-07) Single-binary distribution: workspace pins `rust-embed = { version = "8", default-features = false, features = ["compression"] }` + `mime_guess = "2"`. A2 (Assumptions Log — rust-embed 8.x on edition 2024) is RESOLVED positively at v8.11.0 / rustc 1.95.
+- (Plan 02-07) Static asset fallback wired via `Router::fallback(embed::serve_static)` in `routes/mod.rs`. `/api/*` is unaffected because `.fallback` only fires when no `.route(...)` matches. Single handler, two profiles via `#[cfg(debug_assertions)]` — no `--features embed` cargo gate.
+- (Plan 02-07) Debug profile: `GET /` (and any non-`/api` miss) → 307 Temporary Redirect to `http://localhost:5173/<path>` (query string preserved). Chose 307 over 302 to preserve HTTP method on the redirect.
+- (Plan 02-07) Release profile: rust-embed reads `crates/cli/../../frontend/dist` at compile time. SPA fallback (missing path → `index.html`) supports both hash-router deep links AND arbitrary URL paste-reloads. Cache-Control = `no-cache` for `index.html` (shell can change between deploys) and `public, max-age=3600` for hashed assets (Vite emits content-hashed names).
+- (Plan 02-07) Empty-dist tolerance verified: `cargo check` on a fresh clone with only `frontend/dist/.gitkeep` succeeds — rust-embed silently embeds an empty assets directory and runtime serves 404 on `/` until `npm run build` runs. Chose option 1 from 02-RESEARCH §Empty-dist fallback (no separate feature flag).
+- (Plan 02-07) `--open` flag already wired in `serve/mod.rs` from plan 02-01 (`browser::try_open(&url)` after boot banner). Best-effort; non-fatal on headless environments. Cross-OS verification deferred to plan 02-08 CI matrix.
+- (Plan 02-07) Integration test `crates/cli/tests/serve_prod_embed.rs` covers BOTH profiles via `#[cfg(debug_assertions)]` / `#[cfg(not(debug_assertions))]` split. Release leg self-skips when `frontend/dist/index.html` is absent so fresh-clone runs of `cargo test --release` don't produce spurious red CI. ureq treats 307 with `redirects(0)` as `Ok` (not `Err`), so the assertion folds `Ok` and `Err(Status(_, resp))` into a single response binding before checking status + Location.
+- (Plan 02-07) Manual smoke: release binary run from `/tmp/foliom-smoke/` with no `frontend/dist/` in cwd serves the 1585-byte SPA shell at `/` and SPA-falls back on `/foo/bar/baz` — single-binary distribution confirmed end-to-end.
 
 ### Open Decisions (PRD §12)
 
