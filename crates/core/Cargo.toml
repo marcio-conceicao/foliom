@@ -38,3 +38,13 @@ serde_json = "1"
 [dev-dependencies]
 tempfile = "3"
 filetime = "0.2"
+# Plan 02-08: cold-start bench harness for ACPT-02 (D-35). Pinned via
+# workspace; produces target/criterion/cold_start_5k/.../estimates.json
+# which the CI `bench` job feeds into scripts/bench_assert.py.
+criterion = { workspace = true }
+
+# Plan 02-08: ACPT-02 cold-start benchmark (Db::open + reindex(Full)
+# over /tmp/synth-5k). Disable libtest harness so Criterion drives it.
+[[bench]]
+name = "cold_start"
+harness = false

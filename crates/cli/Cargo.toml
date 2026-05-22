@@ -10,6 +10,13 @@ publish.workspace = true
 name = "foliom"
 path = "src/main.rs"
 
+# Plan 02-08: synthetic 5k corpus generator for ACPT-02 cold-start bench.
+# Deterministic given --seed; emits 70% journals + 30% topical pages with
+# realistic TAB indents, code fences, drawers, properties, and refs.
+[[bin]]
+name = "foliom-bench-gen"
+path = "src/bin/bench-gen.rs"
+
 # Plan 01-07 wires the real CLI (D-01 / D-02 / D-18 / D-19):
 #   - clap derive for the subcommand tree
 #   - anyhow for top-level error context (D-19)
@@ -46,6 +53,9 @@ rusqlite = { version = "0.39", features = ["bundled-full"] }
 # Plan 02-02: journal date formatting (LNK-05) + `now_local` for the
 # `/api/journals/today` redirect.
 time = { workspace = true }
+# Plan 02-08: bench-gen seeds ChaCha8Rng for deterministic corpus output.
+rand = { workspace = true }
+rand_chacha = { workspace = true }
 
 [dev-dependencies]
 assert_cmd = "2"

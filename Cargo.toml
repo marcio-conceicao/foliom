@@ -34,3 +34,14 @@ time = { version = "0.3", features = ["formatting", "local-offset", "macros"] }
 #   - mime_guess: abonander/mime_guess, de-facto MIME lookup crate.
 rust-embed = { version = "8", default-features = false, features = ["compression"] }
 mime_guess = "2"
+# Plan 02-08: performance harness (ACPT-02/03). Pinned per 02-RESEARCH
+# §Package Legitimacy Audit (T-02-SC mitigation):
+#   - sysinfo 0.30 returns RSS in BYTES (A4 — units changed across versions;
+#     do NOT bump without verifying memory() return units).
+#   - rand 0.8 + rand_chacha 0.3 = deterministic synthetic corpus generation
+#     (bench-gen seeds ChaCha8Rng for reproducible /tmp/synth-5k output).
+#   - criterion 0.5 = statistical bench harness (estimates.json contract).
+sysinfo = "=0.30.13"
+rand = "0.8"
+rand_chacha = "0.3"
+criterion = "0.5"
