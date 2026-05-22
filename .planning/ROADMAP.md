@@ -78,7 +78,7 @@
 - [x] 03-04-PLAN.md — CM6 frontend: mount/unmount, IME guard, boundary keymap, history per-instance, treeOpLog
 - [x] 03-05-PLAN.md — Autocomplete + bullet popover + paste detection + treeOp inverse wiring
 - [x] 03-06-PLAN.md — Page rename WAL + PageHeader UX + unresolved-link silent create
-- [ ] 03-07-PLAN.md — ACPT-05 portability acceptance test (automated + manual checklist)
+- [x] 03-07-PLAN.md — ACPT-05 portability acceptance test (automated + manual checklist)
 **UI hint**: yes
 
 ### Phase 4: Disk Sync

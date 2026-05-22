@@ -81,7 +81,7 @@
 - [x] **ACPT-02**: Performance CI: cold start with a 5,000-note generated corpus completes in under 2 seconds on a reference laptop (M1-class). _CI ceiling 3s (×1.5 per D-35); gate via `scripts/bench_assert.py` reading Criterion's estimates.json (plan 02-08)._
 - [x] **ACPT-03**: Memory CI: RSS at idle (after open + first journal) is under 300 MB on the 5,000-note corpus. _CI ceiling 450MB (×1.5); gate via `foliom-bench-rss` using sysinfo (plan 02-08). WSL2 baseline: 49 MB._
 - [x] **ACPT-04**: Cross-platform CI: parser + watcher tests run on Linux, macOS, and Windows runners.
-- [ ] **ACPT-05**: Portability check: `.md` files written by Foliom open without warnings or visible diffs in Obsidian and VS Code.
+- [x] **ACPT-05**: Portability check: `.md` files written by Foliom open without warnings or visible diffs in Obsidian and VS Code.
 
 ### Desktop Packaging (DSK)
 

@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-05-22T07:28:30.585Z"
+last_updated: "2026-05-22T07:36:00Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 22
-  completed_plans: 21
-  percent: 95
+  completed_plans: 22
+  percent: 100
 ---
 
 # Foliom — Project State
 
-**Last updated:** 2026-05-22 (Plan 03-05 executed — autocomplete endpoint, CM6 completionSource, paste detector, serialize, BulletPopover, treeOpLog inverses)
+**Last updated:** 2026-05-22 (Plan 03-07 executed — ACPT-05 portability acceptance test; Phase 3 complete, ready for /gsd-verify-work)
 
 ---
 
@@ -29,9 +29,9 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 3 — Outliner Editor (in progress, 5 of 7 plans landed: 03-01, 03-02, 03-03, 03-04, 03-05).
-- **Plan:** 03-05 complete (autocomplete endpoint GET /api/autocomplete; CM6 completionSource for [[/# triggers; detectBulletTree TS port; serializeBlockTree; BulletPopover 6-action menu; applyInverse for Indent/Outdent/Delete/Move; paste extension wired; 153 frontend tests green, 8 backend tests green).
-- **Status:** Phase 3 plan 03-05 executed — autocomplete + paste + popover + treeOpLog inverses complete; awaiting plan 03-06 (page rename + unresolved-link create)
+- **Phase:** 3 — Outliner Editor (COMPLETE — all 7 plans landed: 03-01..03-07).
+- **Plan:** 03-07 complete (ACPT-05 portability acceptance test: 8-scenario scripted edit sequence, byte invariants, Foliom-metadata grep, ACPT-01 corpus replay — all green; CI job phase-3-acpt-05 added; ACPT-05-PORTABILITY.md manual checklist written).
+- **Status:** Phase 3 complete — ready for /gsd-verify-work
 - **Progress:** [██████████] 95%
 
 ---
@@ -156,6 +156,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Completed Phase 3 Plan 05 — autocomplete endpoint (GET /api/autocomplete kind=page|tag|all with LIKE escape + limit clamp), CM6 completionSource (fired on [[ and #), detectBulletTree (TS port of segment.rs Stage 1 bullet rule, ≥2 bullets required), serializeBlockTree (depth-first verbatim raw concat), BulletPopover.svelte (6 actions: cut/copy/duplicate/fold/zoom/copy-as-md), applyInverse in history-routing.ts (Indent/Outdent/Delete/Move wired; Merge/Split stubbed for 03-06), paste domEventHandler extension in extensions.ts. 4 commits (2 RED + 2 GREEN). 153 frontend tests green (+12), 8 new backend integration tests, bundle 753 KB.
-**Next action:** Execute plan 03-06 (page rename + unresolved-link create).
-**Resumption hint:** Phase 3: 5/7 plans complete (03-01..03-05). Remaining: 03-06 (page rename POST /api/pages/:name/rename + unresolved-link POST /api/pages) and 03-07 (ACPT-05 round-trip verification + IME acceptance test). Known stubs in 03-05: applyInverse Merge/Split (console.debug), duplicate/paste onSiblingCreate callback (needs pageId plumbing), arrow navigation neighbor-focus (from 03-04 deferred), Backspace-merge non-empty block (from 03-04 deferred).
+**Last action:** Completed Phase 3 Plan 07 — ACPT-05 portability acceptance test (8-scenario scripted edit sequence over 16-file corpus: edit/insert/indent/outdent/delete/paste-tree/create-page/rename-page; byte invariants, Foliom-metadata grep, ACPT-01 replay — all green). CI job phase-3-acpt-05 added. ACPT-05-PORTABILITY.md manual checklist written for /gsd-verify-work. Phase 3 is now COMPLETE.
+**Next action:** Run /gsd-verify-work for Phase 3, then plan Phase 4 (file-system watcher + SSE live updates).
+**Resumption hint:** Phase 3 all 7 plans complete. Manual ACPT-05 verification pending (Obsidian + VS Code open-without-warnings). Known deferred items: applyInverse Merge/Split (console.debug stubs), arrow-key neighbor-focus between blocks, Backspace-merge non-empty block. These are tracked in deferred-items.md if created during Phase 3 execution.
