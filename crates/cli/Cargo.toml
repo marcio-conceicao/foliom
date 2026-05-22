@@ -38,4 +38,4 @@ open = { workspace = true }
 assert_cmd = "2"
 tempfile = "3"
 serde_json = "1"
-ureq = { version = "2", default-features = false }
+ureq = { version = "2", default-features = false, features = ["json"] }

@@ -16,8 +16,13 @@ use foliom_core::storage::Db;
 #[derive(Clone)]
 pub struct AppState {
     /// Shared SQLite handle. Lock on read; lock-and-mutate on write.
+    /// Read by every handler starting in plan 02-02; plan 02-01 only
+    /// exercises `/api/health` which does not touch the DB.
+    #[allow(dead_code)]
     pub db: Arc<Mutex<Db>>,
     /// Notes root the server was launched against. Useful for
-    /// future `/api/inventory` and reindex-on-demand endpoints.
+    /// future `/api/inventory` and reindex-on-demand endpoints
+    /// (consumed starting in plan 02-02).
+    #[allow(dead_code)]
     pub root: PathBuf,
 }
