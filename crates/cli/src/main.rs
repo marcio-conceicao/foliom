@@ -45,6 +45,8 @@ enum Cmd {
     DumpTree(cmd::dump_tree::DumpTreeArgs),
     /// Aggregate Logseq pattern counts across a notes root.
     Inventory(cmd::inventory::InventoryArgs),
+    /// Sobe o servidor HTTP local read-only (Phase 2 — D-22..D-25).
+    Serve(cmd::serve::ServeArgs),
 }
 
 fn main() -> Result<()> {
@@ -66,5 +68,6 @@ fn main() -> Result<()> {
         Cmd::Search(args) => cmd::search::run(args),
         Cmd::DumpTree(args) => cmd::dump_tree::run(args),
         Cmd::Inventory(args) => cmd::inventory::run(args),
+        Cmd::Serve(args) => cmd::serve::run(args),
     }
 }

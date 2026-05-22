@@ -12,3 +12,17 @@ edition = "2024"
 rust-version = "1.85"
 license = "Apache-2.0"
 publish = false
+
+# Phase 2 backend stack (D-22..D-25). Pinned in 02-RESEARCH §Standard Stack.
+# All crates verified in 02-RESEARCH §Package Legitimacy Audit (T-02-SC mitigation):
+#   - axum / tower / tower-http: Tokio org / Tower maintainers
+#   - tokio: Tokio team
+#   - open: Byron (sebk on crates.io)
+#   - time: time-rs org
+[workspace.dependencies]
+axum = "0.7"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["compression-full", "trace"] }
+tokio = { version = "1.40", features = ["macros", "rt", "signal", "net"] }
+open = "5"
+time = { version = "0.3", features = ["formatting", "local-offset", "macros"] }

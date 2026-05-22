@@ -6,3 +6,4 @@ pub mod index;
 pub mod inventory;
 pub mod reindex;
 pub mod search;
+pub mod serve;

@@ -15,6 +15,11 @@ path = "src/main.rs"
 #   - anyhow for top-level error context (D-19)
 #   - serde / serde_json for --json output
 #   - tracing + tracing-subscriber for structured logs with RUST_LOG (D-18)
+#
+# Plan 02-01 adds the Phase 2 `serve` subcommand (D-22..D-25):
+#   - axum 0.7 + tower-http for the HTTP layer
+#   - tokio (current_thread runtime) for axum::serve + ctrl_c
+#   - open for best-effort `--open` browser launch
 [dependencies]
 foliom-core = { path = "../core" }
 clap = { version = "4", features = ["derive"] }
@@ -23,8 +28,14 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tokio = { workspace = true }
+open = { workspace = true }
 
 [dev-dependencies]
 assert_cmd = "2"
 tempfile = "3"
 serde_json = "1"
+ureq = { version = "2", default-features = false }
