@@ -1,8 +1,10 @@
 <script lang="ts">
   import Router from 'svelte-spa-router';
   import { routes } from './routes';
-  import { theme } from './lib/stores';
+  import { theme, searchPalette } from './lib/stores';
   import Sidebar from './lib/components/Sidebar.svelte';
+  import SearchPalette from './lib/components/SearchPalette.svelte';
+  import { bindGlobalShortcuts } from './lib/keys';
 
   // Theme resolution lives at the App level so it (a) reacts to user
   // selection via the ThemeToggle (which writes the `theme` store) and
@@ -35,8 +37,17 @@
     document.documentElement.setAttribute('data-theme', resolved);
   });
 
-  // 02-06 will add: search palette modal slot here (mounted as a sibling of
-  // .layout, controlled by `searchPalette` store; visible via Ctrl/Cmd+K).
+  // Global keymap (SCH-03): Ctrl/Cmd+K toggles the search palette;
+  // Esc closes it. Returning the disposer from $effect keeps HMR happy
+  // and prevents duplicate listener registration on re-mount.
+  $effect(() => bindGlobalShortcuts());
+
+  // searchPalette store gate — keeps the palette out of the DOM entirely
+  // while closed (modal chrome incl. backdrop only mounts on demand).
+  let paletteOpen = $state(false);
+  searchPalette.subscribe((s) => {
+    paletteOpen = s.open;
+  });
 </script>
 
 <div class="layout">
@@ -47,3 +58,7 @@
     <Router {routes} />
   </main>
 </div>
+
+{#if paletteOpen}
+  <SearchPalette mode="modal" />
+{/if}
