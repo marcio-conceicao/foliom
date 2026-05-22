@@ -72,6 +72,14 @@ pub struct ServeArgs {
 /// Entry point dispatched from `main.rs`. Synchronous wrapper that builds
 /// a single-threaded tokio runtime (D-25) and blocks on the async core.
 pub fn run(args: ServeArgs) -> Result<()> {
+    // Canonicalize root to absolute path so watcher path comparisons work
+    // regardless of whether the user passed a relative or absolute path.
+    let args = ServeArgs {
+        root: args.root.canonicalize()
+            .with_context(|| format!("resolvendo caminho da raiz {:?}", args.root))?,
+        ..args
+    };
+
     // ---- 1. Open DB ----
     let mut db = Db::open(&args.root)
         .with_context(|| format!("abrindo índice para a raiz {:?}", args.root))?;
