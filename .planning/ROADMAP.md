@@ -90,7 +90,10 @@
   2. Recursive watch is registered at the parent-directory level (not per-file) to avoid Linux inotify exhaustion at ~8k files; Windows `ReadDirectoryChangesW` overflow and macOS `MustScanSubDirs` trigger a rescan fallback without dropping events.
   3. A Syncthing-style bulk-change burst (hundreds of files rewritten in seconds) is processed without UI freeze, lost events, or runaway reindex; only touched files are reparsed.
   4. When an external edit and an in-flight foreground edit collide on the same block, the user sees a conflict UI with foreground-edit-wins as the default and a one-click "discard mine / reload" option.
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 04-01-PLAN.md — Backend watcher (notify-debouncer-full + DirtySet coalescing + SSE endpoint)
+- [ ] 04-02-PLAN.md — Frontend SSE subscription + live reload + watcher-status pill + conflict banner wire
+- [ ] 04-03-PLAN.md — CI smoke job (phase-4-watcher-smoke) + ACPT-04-WATCHER.md manual checklist
 
 ### Phase 5: Desktop Packaging
 **Goal**: Ship Foliom as a signed, notarized Tauri 2 desktop binary on macOS and Windows that wraps the same Svelte UI consuming the in-process axum server — with footprint materially smaller than an Electron equivalent.
@@ -112,7 +115,7 @@
 | 1. Headless Indexing Core | 7/7 | Complete   | 2026-05-22 |
 | 2. Read-Only Web UI | 0/8 | Not started | - |
 | 3. Outliner Editor | 4/7 | In Progress|  |
-| 4. Disk Sync | 0/0 | Not started | - |
+| 4. Disk Sync | 0/3 | Not started | - |
 | 5. Desktop Packaging | 0/0 | Not started | - |
 
 ---

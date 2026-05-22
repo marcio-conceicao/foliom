@@ -168,9 +168,9 @@
 | SNC-05 | Phase 3 (plan 03-06) | Planned |
 | LNK-04 | Phase 3 (plan 03-06) | Planned |
 | ACPT-05 | Phase 3 (plan 03-07) | Planned |
-| SNC-03 | Phase 4 | Pending |
-| SNC-04 | Phase 4 | Pending |
-| SNC-06 | Phase 4 | Pending |
+| SNC-03 | Phase 4 (plans 04-01, 04-03) | Planned |
+| SNC-04 | Phase 4 (plan 04-01) | Planned |
+| SNC-06 | Phase 4 (plans 04-02, 04-03) | Planned |
 | DSK-01 | Phase 5 | Pending |
 | DSK-02 | Phase 5 | Pending |
 | DSK-03 | Phase 5 | Pending |
