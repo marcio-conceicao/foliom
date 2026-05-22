@@ -105,7 +105,7 @@
   3. Footprint CI gate passes: installer < 30 MB, idle RSS < 150 MB on the 5,000-note corpus — materially smaller than an Electron-equivalent shell.
 **Plans**: 3 plans
 - [x] 05-01-PLAN.md — src-tauri/ Tauri shell: BOUND_PORT, WebviewUrl::External, folder picker, config store
-- [ ] 05-02-PLAN.md — Release CI: macOS universal + Windows x64, conditional signing + notarization, GitHub Release
+- [x] 05-02-PLAN.md — Release CI: macOS universal + Windows x64, conditional signing + notarization, GitHub Release
 - [ ] 05-03-PLAN.md — Footprint gate: installer < 30 MB + idle RSS < 150 MB CI assertions
 **UI hint**: yes
 
