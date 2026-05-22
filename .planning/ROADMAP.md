@@ -25,7 +25,7 @@
 **Depends on**: Nothing (foundation phase)
 **Requirements**: IDX-01, IDX-02, IDX-03, IDX-04, IDX-05, IDX-06, IDX-07, IDX-08, PRS-01, PRS-02, PRS-03, PRS-04, PRS-05, PRS-06, PRS-07, ACPT-01, ACPT-04
 **Success Criteria** (what must be TRUE):
-  1. The round-trip CI gate (ACPT-01) is green: `read → parse → splice-noop → write` produces byte-identical output for every file in `data-folder-sample/Logseq/` (~600 files), and it was written BEFORE any storage/indexer/watcher implementation.
+  1. The round-trip CI gate (ACPT-01) is green: `read → segment → splice-noop → write` produces byte-identical output for (a) every file in the committed synthetic corpus `crates/core/tests/fixtures/logseq-synthetic/` (CI gate, 10 fixtures covering all §6.6 patterns, no PII) and (b) every file in the opt-in real corpus `data-folder-sample/Logseq/` when present locally (gitignored — PII). Test was written BEFORE any storage/indexer/watcher implementation. Revised 2026-05-21 after PII concern split the corpus.
   2. The inventory CLI (IDX-08) runs over the real Logseq base and reports counts of `alias::`, `id::`, `:LOGBOOK:`, `#[[...]]`, `%2F`, `template::`, code-fence-in-bullet, and `SCHEDULED:`/`DEADLINE:` — gating parser sign-off.
   3. `foliom index <root>` builds a SQLite index (files, pages, blocks with `raw` + `(byte_offset, byte_length)`, tags, refs, FTS5) stored outside the notes folder (`$XDG_DATA_HOME/foliom/<root-hash>.db`); deleting the DB and re-running reproduces the same index.
   4. `foliom reindex` does incremental work — only files whose `mtime`/`hash` changed are reparsed.

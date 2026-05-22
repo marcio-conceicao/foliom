@@ -10,11 +10,11 @@
 
 - [x] **IDX-01**: Foliom can scan a root folder recursively and discover all `.md` files, respecting an ignore list (`logseq/`, `assets/`, `draws/`, `whiteboards/`, `bak/`, `.recycle/`, `version-files/`, plus `:hidden` entries from `config.edn` when present).
 - [x] **IDX-02**: Foliom builds a SQLite index (files, pages, blocks, tags, refs, FTS5) derived from the `.md` files; deleting the index never causes data loss.
-- [ ] **IDX-03**: On startup, Foliom reindexes incrementally — only files whose `mtime`+`hash` changed are reparsed.
+- [x] **IDX-03**: On startup, Foliom reindexes incrementally — only files whose `mtime`+`hash` changed are reparsed.
 - [x] **IDX-04**: User can trigger a full reindex via CLI command (e.g. `foliom reindex`).
 - [x] **IDX-05**: The blocks table stores `raw` text **plus** `(byte_offset, byte_length)` so write-back can splice changed bytes into the original file without re-serializing the AST.
 - [x] **IDX-06**: The SQLite database lives outside the notes folder (default `$XDG_DATA_HOME/foliom/<root-hash>.db`) to avoid cloud-sync corruption.
-- [ ] **IDX-07**: All stored paths are normalized to NFC + forward slashes so macOS NFC/NFD and Windows backslash differences don't duplicate or lose entries.
+- [x] **IDX-07**: All stored paths are normalized to NFC + forward slashes so macOS NFC/NFD and Windows backslash differences don't duplicate or lose entries.
 - [x] **IDX-08**: A one-shot inventory CLI command reports counts of Logseq-specific patterns (`alias::`, `id::`, `:LOGBOOK:`, `#[[...]]`, `%2F`, `template::`, code-fence-in-bullet, `SCHEDULED:`/`DEADLINE:`) over the user's real base — this gates M0 parser sign-off.
 
 ### Parser (PRS)
@@ -25,7 +25,7 @@
 - [x] **PRS-04**: Tag/link extraction reads the CommonMark AST and considers only text nodes — ignoring ATX headings (`# Título`), code blocks, hex colors (`#fff`), and URLs.
 - [x] **PRS-05**: Block properties (`key:: value`, including `id::`, `collapsed::`, `alias::`, `template::`, `logseq.order-list-type::`, `file::`) are preserved opaquely — parsed into a per-block `properties` slot, never rendered, written back at canonical position.
 - [x] **PRS-06**: Logseq drawers (`:LOGBOOK:` / `:END:`) are preserved opaquely attached to the parent block — never reformatted, never dropped.
-- [ ] **PRS-07**: The parser round-trips byte-identical on (a) the committed synthetic Logseq corpus in `crates/core/tests/fixtures/logseq-synthetic/` (CI gate, no PII) and (b) the opt-in real corpus at `data-folder-sample/Logseq/` when present locally (gitignored — PII). (See ACPT-01.)
+- [x] **PRS-07**: The parser round-trips byte-identical on (a) the committed synthetic Logseq corpus in `crates/core/tests/fixtures/logseq-synthetic/` (CI gate, no PII) and (b) the opt-in real corpus at `data-folder-sample/Logseq/` when present locally (gitignored — PII). Verified locally on Linux/WSL (121/121 tests green); Windows + macOS legs validated on first remote CI push.
 
 ### Linking & Navigation (LNK)
 
@@ -77,7 +77,7 @@
 
 ### Acceptance Tests / Quality Gates (ACPT)
 
-- [ ] **ACPT-01**: Round-trip stability gate. Primary: for every `.md` in the committed synthetic corpus (`crates/core/tests/fixtures/logseq-synthetic/`), `read → segment → splice-noop → write` produces a byte-identical buffer — this runs in CI matrix Linux/macOS/Windows. Secondary (opt-in, local-only): same check against `data-folder-sample/Logseq/` when the gitignored real corpus is present. Both legs ship before any storage code is built and must stay green for the project's life.
+- [x] **ACPT-01**: Round-trip stability gate. Primary: for every `.md` in the committed synthetic corpus (`crates/core/tests/fixtures/logseq-synthetic/`), `read → segment → splice-noop → write` produces a byte-identical buffer — runs in CI matrix Linux/macOS/Windows. Secondary (opt-in, local-only): same check against `data-folder-sample/Logseq/` when the gitignored real corpus is present. Shipped failing in Plan 01-01, flipped green in Plan 01-02. Verified locally Linux/WSL; Windows leg validated on first remote CI push.
 - [ ] **ACPT-02**: Performance CI: cold start with a 5,000-note generated corpus completes in under 2 seconds on a reference laptop (M1-class).
 - [ ] **ACPT-03**: Memory CI: RSS at idle (after open + first journal) is under 300 MB on the 5,000-note corpus.
 - [x] **ACPT-04**: Cross-platform CI: parser + watcher tests run on Linux, macOS, and Windows runners.
@@ -120,11 +120,11 @@
 |-------------|-------|--------|
 | IDX-01 | Phase 1 | Complete (Plan 01-05) |
 | IDX-02 | Phase 1 | Complete |
-| IDX-03 | Phase 1 | Pending |
+| IDX-03 | Phase 1 | Complete |
 | IDX-04 | Phase 1 | Complete |
 | IDX-05 | Phase 1 | Complete |
 | IDX-06 | Phase 1 | Complete |
-| IDX-07 | Phase 1 | Pending |
+| IDX-07 | Phase 1 | Complete |
 | IDX-08 | Phase 1 | Complete |
 | PRS-01 | Phase 1 | Complete |
 | PRS-02 | Phase 1 | Complete |
@@ -132,8 +132,8 @@
 | PRS-04 | Phase 1 | Complete |
 | PRS-05 | Phase 1 | Complete |
 | PRS-06 | Phase 1 | Complete |
-| PRS-07 | Phase 1 | Pending |
-| ACPT-01 | Phase 1 | Pending |
+| PRS-07 | Phase 1 | Complete (local Linux/WSL; Windows pending first push) |
+| ACPT-01 | Phase 1 | Complete (local Linux/WSL; Windows pending first push) |
 | ACPT-04 | Phase 1 | Complete |
 | LNK-01 | Phase 2 | Pending |
 | LNK-02 | Phase 2 | Pending |
