@@ -78,8 +78,8 @@
 ### Acceptance Tests / Quality Gates (ACPT)
 
 - [x] **ACPT-01**: Round-trip stability gate. Primary: for every `.md` in the committed synthetic corpus (`crates/core/tests/fixtures/logseq-synthetic/`), `read → segment → splice-noop → write` produces a byte-identical buffer — runs in CI matrix Linux/macOS/Windows. Secondary (opt-in, local-only): same check against `data-folder-sample/Logseq/` when the gitignored real corpus is present. Shipped failing in Plan 01-01, flipped green in Plan 01-02. Verified locally Linux/WSL; Windows leg validated on first remote CI push.
-- [ ] **ACPT-02**: Performance CI: cold start with a 5,000-note generated corpus completes in under 2 seconds on a reference laptop (M1-class).
-- [ ] **ACPT-03**: Memory CI: RSS at idle (after open + first journal) is under 300 MB on the 5,000-note corpus.
+- [x] **ACPT-02**: Performance CI: cold start with a 5,000-note generated corpus completes in under 2 seconds on a reference laptop (M1-class). _CI ceiling 3s (×1.5 per D-35); gate via `scripts/bench_assert.py` reading Criterion's estimates.json (plan 02-08)._
+- [x] **ACPT-03**: Memory CI: RSS at idle (after open + first journal) is under 300 MB on the 5,000-note corpus. _CI ceiling 450MB (×1.5); gate via `foliom-bench-rss` using sysinfo (plan 02-08). WSL2 baseline: 49 MB._
 - [x] **ACPT-04**: Cross-platform CI: parser + watcher tests run on Linux, macOS, and Windows runners.
 - [ ] **ACPT-05**: Portability check: `.md` files written by Foliom open without warnings or visible diffs in Obsidian and VS Code.
 
@@ -149,8 +149,8 @@
 | UI-03 | Phase 2 | Complete |
 | UI-04 | Phase 2 | Complete |
 | EDT-08 | Phase 2 | Complete |
-| ACPT-02 | Phase 2 | Pending |
-| ACPT-03 | Phase 2 | Pending |
+| ACPT-02 | Phase 2 (plan 02-08) | Complete |
+| ACPT-03 | Phase 2 (plan 02-08) | Complete |
 | EDT-01 | Phase 3 | Pending |
 | EDT-02 | Phase 3 | Pending |
 | EDT-03 | Phase 3 | Pending |

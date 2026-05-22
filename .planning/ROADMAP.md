@@ -4,14 +4,14 @@
 **Granularity:** coarse
 **Mode:** standard (horizontal layers — M0 headless → M1 read UI → M2 editor → M3 sync → M4 desktop)
 **Coverage:** 49/49 v1 requirements mapped
-**Last updated:** 2026-05-21
+**Last updated:** 2026-05-22
 
 ---
 
 ## Phases
 
 - [x] **Phase 1: Headless Indexing Core** — Round-trip CI gate + inventory script + scanner/parser/indexer/CLI; no UI. (completed 2026-05-22)
-- [ ] **Phase 2: Read-Only Web UI** — Svelte frontend over axum HTTP serving rendered pages, navigation, backlinks, search.
+- [x] **Phase 2: Read-Only Web UI** — Svelte frontend over axum HTTP serving rendered pages, navigation, backlinks, search. (code-complete 2026-05-22 — awaiting `/gsd-verify-work`)
 - [ ] **Phase 3: Outliner Editor** — CodeMirror 6 single-block editor with byte-splice writeback, undo/redo, rename-with-backlinks.
 - [ ] **Phase 4: Disk Sync** — Filesystem watcher with self-write suppression, SSE live updates, conflict UI.
 - [ ] **Phase 5: Desktop Packaging** — Tauri 2 shell, signed installers, footprint gate.
@@ -57,7 +57,7 @@
 - [x] 02-05-PLAN.md — Sidebar + journal navigator + theme toggle + backlinks panel + unresolved chip styling
 - [x] 02-06-PLAN.md — Search palette (Ctrl/Cmd+K) with FTS5 + tag-refs + page-title routing + click-to-block deep links
 - [x] 02-07-PLAN.md — rust-embed prod build + dev-redirect to Vite + --open flag + SPA fallback
-- [ ] 02-08-PLAN.md — Perf harness (Criterion cold-start + sysinfo RSS) + 5k corpus gen + CI matrix update + ACPT-02/03 gates
+- [x] 02-08-PLAN.md — Perf harness (Criterion cold-start + sysinfo RSS) + 5k corpus gen + CI matrix update + ACPT-02/03 gates
 **UI hint**: yes
 
 ### Phase 3: Outliner Editor
