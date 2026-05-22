@@ -33,17 +33,31 @@ jobs:
       - name: cargo build
         run: cargo build --workspace --locked
 
-      - name: cargo nextest run (parser + scanner + roundtrip + storage)
+      - name: cargo nextest run (parser + scanner + roundtrip + storage + cli)
         run: cargo nextest run --workspace --no-fail-fast
 
-      # TODO(plan 01-07): remove continue-on-error once inventory subcommand lands.
-      - name: Inventory smoke test (asserts known pattern counts)
-        run: cargo run --bin foliom -- inventory data-folder-sample/Logseq/ --json > /tmp/inv.json
-        if: runner.os != 'Windows'
-        continue-on-error: true
+      # Plan 01-07 (IDX-08, ACPT-04): inventory smoke must enforce.
+      # The synthetic fixture is the CI target (no PII, committed);
+      # the real corpus `data-folder-sample/Logseq/` is gitignored and
+      # only used locally. `continue-on-error` removed — drift here
+      # fails the build.
+      - name: Build release foliom binary (for smoke test)
+        run: cargo build --release --bin foliom --locked
 
-      # TODO(plan 01-07): remove continue-on-error once inventory subcommand lands.
+      - name: Inventory smoke test (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          ./target/release/foliom inventory crates/core/tests/fixtures/logseq-synthetic --json > /tmp/inv.json
+          # Assert scannedFiles > 0 without requiring jq on the matrix.
+          python3 -c "import json,sys; d=json.load(open('/tmp/inv.json')); sys.exit(0 if d['scannedFiles'] > 0 else 1)"
+
       - name: Inventory smoke test (Windows)
-        run: cargo run --bin foliom -- inventory data-folder-sample/Logseq/ --json > $env:TEMP\inv.json
         if: runner.os == 'Windows'
-        continue-on-error: true
+        shell: pwsh
+        run: |
+          ./target/release/foliom.exe inventory crates/core/tests/fixtures/logseq-synthetic --json > $env:TEMP\inv.json
+          $report = Get-Content $env:TEMP\inv.json | ConvertFrom-Json
+          if ($report.scannedFiles -le 0) {
+            Write-Error "inventory smoke: scannedFiles is 0"
+            exit 1
+          }
