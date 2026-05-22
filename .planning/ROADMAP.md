@@ -71,7 +71,14 @@
   4. Renaming a page rewrites all `[[oldname]]` and `[[oldname|alias]]` references across the corpus in one atomic transaction; backlinks survive; clicking an unresolved `[[link]]` offers to create the target.
   5. Autocomplete on `[[` and `#` suggests from the indexed page/tag set; copy/cut/paste preserves block hierarchy via multi-line bullet-indented clipboard; a block context menu exposes cut/copy/duplicate/fold/zoom/copy-as-markdown.
   6. Portability check (ACPT-05): `.md` files written by Foliom open without warnings or visible diffs in Obsidian and VS Code, on a corpus exercised by real edits across this phase.
-**Plans**: TBD
+**Plans**: 7 plans
+- [ ] 03-01-PLAN.md — Atomic write + SelfWriteSet (sync foundation; dashmap + tempfile promotion)
+- [ ] 03-02-PLAN.md — Mutation engine pure logic (splice_block + TreeOp invertible apply)
+- [ ] 03-03-PLAN.md — Mutation REST endpoints (PUT/POST/PATCH/DELETE /api/blocks + conflict detection)
+- [ ] 03-04-PLAN.md — CM6 frontend: mount/unmount, IME guard, boundary keymap, history per-instance, treeOpLog
+- [ ] 03-05-PLAN.md — Autocomplete + bullet popover + paste detection + treeOp inverse wiring
+- [ ] 03-06-PLAN.md — Page rename WAL + PageHeader UX + unresolved-link silent create
+- [ ] 03-07-PLAN.md — ACPT-05 portability acceptance test (automated + manual checklist)
 **UI hint**: yes
 
 ### Phase 4: Disk Sync

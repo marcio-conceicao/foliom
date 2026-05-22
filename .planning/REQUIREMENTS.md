@@ -151,23 +151,23 @@
 | EDT-08 | Phase 2 | Complete |
 | ACPT-02 | Phase 2 (plan 02-08) | Complete |
 | ACPT-03 | Phase 2 (plan 02-08) | Complete |
-| EDT-01 | Phase 3 | Pending |
-| EDT-02 | Phase 3 | Pending |
-| EDT-03 | Phase 3 | Pending |
-| EDT-04 | Phase 3 | Pending |
-| EDT-05 | Phase 3 | Pending |
-| EDT-06 | Phase 3 | Pending |
-| EDT-07 | Phase 3 | Pending |
-| EDT-09 | Phase 3 | Pending |
-| EDT-10 | Phase 3 | Pending |
-| EDT-11 | Phase 3 | Pending |
-| EDT-12 | Phase 3 | Pending |
-| EDT-13 | Phase 3 | Pending |
-| SNC-01 | Phase 3 | Pending |
-| SNC-02 | Phase 3 | Pending |
-| SNC-05 | Phase 3 | Pending |
-| LNK-04 | Phase 3 | Pending |
-| ACPT-05 | Phase 3 | Pending |
+| EDT-01 | Phase 3 (plan 03-04) | Planned |
+| EDT-02 | Phase 3 (plan 03-03) | Planned |
+| EDT-03 | Phase 3 (plan 03-03) | Planned |
+| EDT-04 | Phase 3 (plan 03-04) | Planned |
+| EDT-05 | Phase 3 (plan 03-04) | Planned |
+| EDT-06 | Phase 3 (plan 03-04) | Planned |
+| EDT-07 | Phase 3 (plan 03-04) | Planned |
+| EDT-09 | Phase 3 (plan 03-05) | Planned |
+| EDT-10 | Phase 3 (plan 03-04) | Planned |
+| EDT-11 | Phase 3 (plan 03-05) | Planned |
+| EDT-12 | Phase 3 (plan 03-05) | Planned |
+| EDT-13 | Phase 3 (plan 03-04) | Planned |
+| SNC-01 | Phase 3 (plan 03-02) | Planned |
+| SNC-02 | Phase 3 (plan 03-01) | Planned |
+| SNC-05 | Phase 3 (plan 03-06) | Planned |
+| LNK-04 | Phase 3 (plan 03-06) | Planned |
+| ACPT-05 | Phase 3 (plan 03-07) | Planned |
 | SNC-03 | Phase 4 | Pending |
 | SNC-04 | Phase 4 | Pending |
 | SNC-06 | Phase 4 | Pending |
