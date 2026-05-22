@@ -13,7 +13,7 @@
 - [x] **Phase 1: Headless Indexing Core** — Round-trip CI gate + inventory script + scanner/parser/indexer/CLI; no UI. (completed 2026-05-22)
 - [x] **Phase 2: Read-Only Web UI** — Svelte frontend over axum HTTP serving rendered pages, navigation, backlinks, search. (code-complete 2026-05-22 — awaiting `/gsd-verify-work`)
 - [ ] **Phase 3: Outliner Editor** — CodeMirror 6 single-block editor with byte-splice writeback, undo/redo, rename-with-backlinks.
-- [ ] **Phase 4: Disk Sync** — Filesystem watcher with self-write suppression, SSE live updates, conflict UI.
+- [x] **Phase 4: Disk Sync** — Filesystem watcher with self-write suppression, SSE live updates, conflict UI. (completed 2026-05-22)
 - [ ] **Phase 5: Desktop Packaging** — Tauri 2 shell, signed installers, footprint gate.
 
 ---
@@ -93,7 +93,7 @@
 **Plans**: 3 plans
 - [x] 04-01-PLAN.md — Backend watcher (notify-debouncer-full + DirtySet coalescing + SSE endpoint)
 - [x] 04-02-PLAN.md — Frontend SSE subscription + live reload + watcher-status pill + conflict banner wire
-- [ ] 04-03-PLAN.md — CI smoke job (phase-4-watcher-smoke) + ACPT-04-WATCHER.md manual checklist
+- [x] 04-03-PLAN.md — CI smoke job (phase-4-watcher-smoke) + ACPT-04-WATCHER.md manual checklist
 
 ### Phase 5: Desktop Packaging
 **Goal**: Ship Foliom as a signed, notarized Tauri 2 desktop binary on macOS and Windows that wraps the same Svelte UI consuming the in-process axum server — with footprint materially smaller than an Electron equivalent.
@@ -115,7 +115,7 @@
 | 1. Headless Indexing Core | 7/7 | Complete   | 2026-05-22 |
 | 2. Read-Only Web UI | 0/8 | Not started | - |
 | 3. Outliner Editor | 4/7 | In Progress|  |
-| 4. Disk Sync | 2/3 | In Progress|  |
+| 4. Disk Sync | 3/3 | Complete   | 2026-05-22 |
 | 5. Desktop Packaging | 0/0 | Not started | - |
 
 ---

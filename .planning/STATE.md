@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-22T12:53:49.444Z"
+last_updated: "2026-05-22T12:58:47.067Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 25
-  completed_plans: 24
-  percent: 96
+  completed_plans: 25
+  percent: 100
 ---
 
 # Foliom — Project State
 
-**Last updated:** 2026-05-22 (Plan 04-02 executed — frontend SSE watcher, watcherStatus store, conflict banner wire, Sidebar pill; SNC-06 fulfilled; 3min)
+**Last updated:** 2026-05-22 (Plan 04-03 executed — phase-4-watcher-smoke CI job + ACPT-04-WATCHER.md; SNC-03/04/06 CI-closed; Phase 4 complete; 2min)
 
 ---
 
@@ -30,10 +30,11 @@ progress:
 
 - **Milestone:** v1
 - **Milestone:** v1
-- **Phase:** 4 — Disk Sync (in progress — 2/3 plans: 04-01, 04-02 complete).
-- **Plan:** 04-02 complete (frontend SSE watcher singleton + stores + conflict banner wire + Sidebar pill; SNC-06 fulfilled; 10 Vitest tests green; 177/177 total).
-- **Status:** Phase 4 in progress — 04-03 (CI integration smoke) next
-- **Progress:** [██████████] 97%
+- **Milestone:** v1
+- **Phase:** 4 — Disk Sync (COMPLETE — all 3 plans: 04-01, 04-02, 04-03 done).
+- **Plan:** 04-03 complete (phase-4-watcher-smoke CI job + ACPT-04-WATCHER.md; SNC-03/04/06 fulfilled; Phase 4 CI-complete; 2min).
+- **Status:** Phase 4 complete — ready for verification. Phase 5 next.
+- **Progress:** [██████████] 100%
 
 ---
 
@@ -62,6 +63,7 @@ progress:
 | Phase 03 P05 | 10min | 2 tasks | 14 files |
 | Phase 04 P01 | 12min | 2 tasks | 11 files |
 | Phase 04 P02 | 3min | 2 tasks | 6 files |
+| Phase 04 P03 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -144,6 +146,9 @@ progress:
 - (Plan 04-02) externalConflict one-shot signal pattern: watcher.ts sets; PageView.svelte always resets to null after handling — prevents perpetual banner (T-04-06). EventSource singleton guard uses readyState !== CLOSED (not null check) so a browser-reconnecting ES (CONNECTING state) is not replaced.
 - (Plan 04-02) App.svelte onMount for startWatcher (not module-level) so Vitest tests can assign MockEventSource to globalThis before the component mounts and captures the constructor.
 - (Plan 04-02) Watcher-status pill: CSS-only @keyframes watcher-pulse animation for reconnecting state. No JS animation. 8px dot, three data-status values binding to green/amber/grey.
+- (Plan 04-03) CI smoke job uses curl --no-buffer -N for SSE (streaming) rather than a ureq test binary — simpler, no new dep, exercises the real HTTP path. PID-file pattern (/tmp/*.pid) for cleanup across GitHub Actions steps that don't share env vars.
+- (Plan 04-03) 1.5s wait (not 1s) in CI smoke: absorbs server startup + inotify debounce (300ms) + DirtySet coalescing (300ms) + curl overhead. Still well within 5-minute job timeout.
+- (Plan 04-03) Linux-only smoke job: Windows ReadDirectoryChangesW testing requires Windows native runner; covered by ACPT-04-WATCHER.md manual checklist instead.
 
 ### Open Decisions (PRD §12)
 
@@ -165,6 +170,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Plan 04-02 complete — frontend SSE watcher singleton + stores + conflict banner + Sidebar pill. commits: 6d20839 (RED tests), 9f78698 (feat stores+watcher), 5695653 (feat App/PageView/Sidebar). 177/177 Vitest tests green. SNC-06 fulfilled.
-**Next action:** Plan 04-03 — CI integration smoke tests for watcher + full disk-sync pipeline.
-**Resumption hint:** Backend watcher + SSE endpoint live (04-01). Frontend watcher singleton live (04-02). Phase 4 needs 04-03 (CI smoke) to close out disk-sync phase.
+**Last action:** Plan 04-03 complete — phase-4-watcher-smoke CI job (eee03fa) + ACPT-04-WATCHER.md (a8860c5). Phase 4 all 3 plans done. SNC-03/04/06 CI-closed.
+**Next action:** Phase 5 planning OR run /gsd-verify-work to sign off Phase 4.
+**Resumption hint:** Phase 4 complete. phase-4-watcher-smoke job runs on every push. Windows watcher manual acceptance pending (ACPT-04-WATCHER.md).
