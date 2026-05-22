@@ -9,6 +9,7 @@
   import { currentlyEditing } from '../stores/editing';
   import { treeOpLog } from '../stores/treeOpLog';
   import { BlockEditor, trySaveBlock } from '../editor/view';
+  import { completionSource } from '../editor/autocomplete';
   import Self from './Block.svelte';
 
   // Props extend BlockData with fileHash (plan 03-03 wire contract)
@@ -100,7 +101,7 @@
           // Called by boundary key handlers after unmount
           void persistBlock(docText);
         },
-        completions: async () => null, // plan 03-06 wires real completions
+        completions: completionSource, // EDT-09: real [[link]] and #tag completions (plan 03-05)
       });
     }
   });

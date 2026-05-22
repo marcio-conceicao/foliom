@@ -2,7 +2,9 @@
 //! read-only endpoints from D-24 (the SearchKind variants count as one
 //! route with query-driven routing). Subsequent plans (02-03..02-08) add
 //! the embedded SPA on `/`. Plan 03-03 adds mutation endpoints.
+//! Plan 03-05 adds the autocomplete endpoint.
 
+pub mod autocomplete;
 pub mod blocks;
 pub mod health;
 pub mod journals;
@@ -36,6 +38,8 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/journals", get(journals::range))
         // Search (plan 02-02).
         .route("/api/search", get(search::search))
+        // Plan 03-05: autocomplete endpoint (EDT-09, D-30-06).
+        .route("/api/autocomplete", get(autocomplete::get))
         // Plan 03-03: mutation endpoints.
         .route("/api/blocks", post(blocks::post_block))
         .route("/api/blocks/:id", put(blocks::put_block))
