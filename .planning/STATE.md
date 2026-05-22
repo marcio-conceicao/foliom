@@ -2,15 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 2 plan 02-08 executed — Phase 2 ready for verification
-last_updated: "2026-05-22T05:07:00.000Z"
+status: verifying
+last_updated: "2026-05-22T06:12:07.830Z"
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
-phase_ready_for_verification: 02-read-only-web-ui
+  completed_phases: 2
+  total_plans: 22
+  completed_plans: 16
+  percent: 73
 ---
 
 # Foliom — Project State
@@ -30,10 +29,10 @@ phase_ready_for_verification: 02-read-only-web-ui
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 2 — Read-Only Web UI (CODE-COMPLETE, 8 of 8 plans landed: 02-01..02-08). Ready for `/gsd-verify-work`.
-- **Plan:** 02-08 complete (Criterion cold-start bench + sysinfo RSS probe + 5k corpus gen + CI matrix refactor; Linux-only `bench` job gates ACPT-02 <3s and ACPT-03 <450MB; PERF-BASELINE.md pins first measured numbers).
-- **Status:** Phase 2 plan 02-08 executed — Phase 2 ready for verification
-- **Progress:** [██████████] 100% (15/15 plans)
+- **Phase:** 3 — Outliner Editor (in progress, 1 of 7 plans landed: 03-01).
+- **Plan:** 03-01 complete (SNC-02: `crates/core::sync::atomic_write_md` same-FS temp+rename with Windows AV retry; `SelfWriteSet` dashmap-backed registry, DEFAULT_TTL 30s; `tempfile` promoted to runtime dep + `dashmap = "6"` added to workspace).
+- **Status:** Phase 3 plan 03-01 executed — awaiting plan 03-02 (mutation::splice + tree_ops scaffolding already on disk from concurrent process)
+- **Progress:** [███████░░░] 73%
 
 ---
 
@@ -56,6 +55,7 @@ phase_ready_for_verification: 02-read-only-web-ui
 | Phase 02 P06 | 14m | 2 tasks | 11 files |
 | Phase 02 P07 | 18m | 2 tasks | 8 files |
 | Phase 02 P08 | 35m | 2 tasks | 12 files |
+| Phase 03 P01 | 35min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -113,6 +113,8 @@ phase_ready_for_verification: 02-read-only-web-ui
 - (Plan 02-08) bench-rss env override surface for test/CI hygiene: `FOLIOM_BENCH_PORT` (default 7350), `FOLIOM_BENCH_CEILING_MB` (default 450), `FOLIOM_BENCH_FOLIOM` (binary path override). Binary resolver: env override → sibling of current_exe (works under target/release/) → `./target/release/foliom` fallback. Cross-platform via `cfg!(windows)` for the `.exe` suffix.
 - (Plan 02-08) PERF-BASELINE.md records first measurements: WSL2 cold start = 12.20s (above 3s ceiling — EXPECTED hardware delta vs the M1-class PRD reference; CI runs on ubuntu-latest where the ceiling should hold), RSS = 49 MB (well below 300 MB target), bundle = 248 KB (well below 600 KB ceiling). Drift table inline; new rows appended (never overwritten) when metrics drift ≥10%.
 - (Plan 02-08) `cargo nextest` not installed locally; verified via `cargo test --workspace --no-fail-fast` (all 17 test binaries green). CI installs nextest via `taiki-e/install-action@nextest` so this affects only local verification.
+- (Plan 03-01) SNC-02 foundations: `crates/core::sync` module exposes `atomic_write_md(target, contents, &SelfWriteSet) -> io::Result<[u8;32]>` (same-FS temp+rename, blake3 hash registered BEFORE persist, Windows-only retry 50/100/200ms on `PermissionDenied`/`Other` for AV holds, unix parent fsync for crash safety). `SelfWriteSet` is `Clone + Send + Sync` over `Arc<DashMap<[u8;32], Instant>>` with configurable TTL (`DEFAULT_TTL = 30s`). Workspace pins `tempfile = "3"` (promoted from per-crate dev-dep) and `dashmap = "6"` (max-stable 6.2.1; 7.x is rc — explicitly rejected). A9 verified: `TempPath::persist` returns `PathPersistError { error, path }` so the retry loop re-attempts without rewriting contents. Windows AV smoke test is `#[cfg_attr(not(windows), ignore)]`; tolerates 0 or ≥3 attempts via test-only `LAST_PERSIST_ATTEMPTS` thread_local counter.
+- (Plan 03-01) Commit `a113c88` accidentally included `crates/core/src/mutation/{mod,splice,tree_ops}.rs` + `__tests__/splice_test.rs` scaffolding created out-of-band by a concurrent process (PLAN 03-02's territory per 03-RESEARCH §8). Files compile cleanly and pass tests; left in place. Plan 03-02 executor should treat them as a starting point, not re-create.
 
 ### Open Decisions (PRD §12)
 

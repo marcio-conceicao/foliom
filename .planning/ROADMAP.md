@@ -72,7 +72,7 @@
   5. Autocomplete on `[[` and `#` suggests from the indexed page/tag set; copy/cut/paste preserves block hierarchy via multi-line bullet-indented clipboard; a block context menu exposes cut/copy/duplicate/fold/zoom/copy-as-markdown.
   6. Portability check (ACPT-05): `.md` files written by Foliom open without warnings or visible diffs in Obsidian and VS Code, on a corpus exercised by real edits across this phase.
 **Plans**: 7 plans
-- [ ] 03-01-PLAN.md — Atomic write + SelfWriteSet (sync foundation; dashmap + tempfile promotion)
+- [x] 03-01-PLAN.md — Atomic write + SelfWriteSet (sync foundation; dashmap + tempfile promotion)
 - [ ] 03-02-PLAN.md — Mutation engine pure logic (splice_block + TreeOp invertible apply)
 - [ ] 03-03-PLAN.md — Mutation REST endpoints (PUT/POST/PATCH/DELETE /api/blocks + conflict detection)
 - [ ] 03-04-PLAN.md — CM6 frontend: mount/unmount, IME guard, boundary keymap, history per-instance, treeOpLog
