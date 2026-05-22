@@ -151,29 +151,29 @@
 | EDT-08 | Phase 2 | Complete |
 | ACPT-02 | Phase 2 (plan 02-08) | Complete |
 | ACPT-03 | Phase 2 (plan 02-08) | Complete |
-| EDT-01 | Phase 3 (plan 03-04) | Planned |
-| EDT-02 | Phase 3 (plan 03-03) | Planned |
-| EDT-03 | Phase 3 (plan 03-03) | Planned |
-| EDT-04 | Phase 3 (plan 03-04) | Planned |
-| EDT-05 | Phase 3 (plan 03-04) | Planned |
-| EDT-06 | Phase 3 (plan 03-04) | Planned |
-| EDT-07 | Phase 3 (plan 03-04) | Planned |
-| EDT-09 | Phase 3 (plan 03-05) | Planned |
-| EDT-10 | Phase 3 (plan 03-04) | Planned |
-| EDT-11 | Phase 3 (plan 03-05) | Planned |
-| EDT-12 | Phase 3 (plan 03-05) | Planned |
-| EDT-13 | Phase 3 (plan 03-04) | Planned |
-| SNC-01 | Phase 3 (plan 03-02) | Planned |
-| SNC-02 | Phase 3 (plan 03-01) | Planned |
-| SNC-05 | Phase 3 (plan 03-06) | Planned |
-| LNK-04 | Phase 3 (plan 03-06) | Planned |
-| ACPT-05 | Phase 3 (plan 03-07) | Planned |
+| EDT-01 | Phase 3 (03-04) | Complete |
+| EDT-02 | Phase 3 (03-03) | Complete |
+| EDT-03 | Phase 3 (03-03) | Complete |
+| EDT-04 | Phase 3 (03-04) | Complete |
+| EDT-05 | Phase 3 (03-04) | Complete |
+| EDT-06 | Phase 3 (03-04) | Complete |
+| EDT-07 | Phase 3 (03-04) | Complete |
+| EDT-09 | Phase 3 (03-05) | Complete |
+| EDT-10 | Phase 3 (03-04) | Complete |
+| EDT-11 | Phase 3 (03-05) | Complete |
+| EDT-12 | Phase 3 (03-05) | Complete |
+| EDT-13 | Phase 3 (03-04) | Complete |
+| SNC-01 | Phase 3 (03-02) | Complete |
+| SNC-02 | Phase 3 (03-01) | Complete |
+| SNC-05 | Phase 3 (03-06) | Complete |
+| LNK-04 | Phase 3 (03-06) | Complete |
+| ACPT-05 | Phase 3 (03-07) | Complete |
 | SNC-03 | Phase 4 (plans 04-01, 04-03) | Implemented (04-01) |
 | SNC-04 | Phase 4 (plan 04-01) | Implemented (04-01) |
-| SNC-06 | Phase 4 (plans 04-02, 04-03) | Planned |
-| DSK-01 | Phase 5 (plan 05-01) | Planned |
-| DSK-02 | Phase 5 (plan 05-02) | Planned |
-| DSK-03 | Phase 5 (plan 05-03) | Planned |
+| SNC-06 | Phase 4 (04-02, 04-03) | Complete |
+| DSK-01 | Phase 5 (05-01) | Complete |
+| DSK-02 | Phase 5 (05-02) | Complete |
+| DSK-03 | Phase 5 (05-03) | Complete |
 
 **Coverage:** 56/56 v1 requirements mapped to exactly one phase. No orphans, no duplicates.
 
