@@ -54,7 +54,7 @@
 - [x] 02-02-PLAN.md — REST API: pages, page detail (nested tree), backlinks, journals (today + range), search (FTS5 + tag-refs), page-titles
 - [x] 02-03-PLAN.md — Frontend scaffold: Svelte 5 + Vite + TS + svelte-spa-router + stores + api wrappers + vitest
 - [x] 02-04-PLAN.md — Block renderer: markdown-it custom rules ([[link]]/#tag/#[[tag]]) + Prism + GFM + indent guides + fold + block zoom
-- [ ] 02-05-PLAN.md — Sidebar + journal navigator + theme toggle + backlinks panel + unresolved chip styling
+- [x] 02-05-PLAN.md — Sidebar + journal navigator + theme toggle + backlinks panel + unresolved chip styling
 - [ ] 02-06-PLAN.md — Search palette (Ctrl/Cmd+K) with FTS5 + tag-refs + page-title routing + click-to-block deep links
 - [ ] 02-07-PLAN.md — rust-embed prod build + dev-redirect to Vite + --open flag + SPA fallback
 - [ ] 02-08-PLAN.md — Perf harness (Criterion cold-start + sysinfo RSS) + 5k corpus gen + CI matrix update + ACPT-02/03 gates

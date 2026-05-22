@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 2 plan 02-04 executed
-last_updated: "2026-05-22T02:55:00.000Z"
+status: Phase 2 plan 02-05 executed
+last_updated: "2026-05-22T03:50:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 15
-  completed_plans: 12
-  percent: 80
+  completed_plans: 13
+  percent: 87
 ---
 
 # Foliom — Project State
@@ -29,10 +29,10 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 2 — Read-Only Web UI (in progress, 4 of 8 plans complete: 02-01, 02-02, 02-03, 02-04)
-- **Plan:** 02-04 complete (per-block markdown renderer + foliom inline rules + Prism + Block zoom); next is 02-05 (sidebar + dark-mode toggle + backlinks panel)
-- **Status:** Phase 2 plan 02-04 executed
-- **Progress:** [████████░░] 80%
+- **Phase:** 2 — Read-Only Web UI (in progress, 5 of 8 plans complete: 02-01, 02-02, 02-03, 02-04, 02-05)
+- **Plan:** 02-05 complete (Sidebar + JournalNavigator + ThemeToggle + BacklinksPanel + unresolved chip styling); next is 02-06 (search palette Ctrl+K)
+- **Status:** Phase 2 plan 02-05 executed
+- **Progress:** [████████▊░] 87%
 
 ---
 
@@ -51,6 +51,7 @@ progress:
 | Phase 02 P01 | 16m | 2 tasks | 11 files |
 | Phase 02 P03 | 10 | 2 tasks | 23 files |
 | Phase 02 P04 | 12m | 2 tasks | 16 files |
+| Phase 02 P05 | 7m | 2 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,14 @@ progress:
 - (Plan 02-04) Line-numbers: pure-CSS gutter band (no JS plugin). Per-line digits deferred. UI-04's `.line-numbers` class contract is satisfied so a future enhancement can layer numbers on top without touching markdown.
 - (Plan 02-04) Unresolved page-link styling deferred to plan 02-05 (waits for `sidebarPages`).
 - (Plan 02-04) 1000-block render time in happy-dom = 705ms vs 2000ms ceiling. Real-browser aspirational target is <100ms per A7.
+- (Plan 02-05) Did NOT add `@testing-library/svelte` — raw `mount`/`unmount` from svelte + DOM `querySelector` is consistent with 02-04's test style and avoids a ~70KB devDep.
+- (Plan 02-05) ThemeToggle eagerly sets `<html data-theme>` on click in addition to writing the `theme` store. App.svelte's `$effect` remains the authoritative resolver (with `prefers-color-scheme` change listener + cleanup), but the eager apply keeps tests + isolated mounts self-sufficient.
+- (Plan 02-05) Anti-FOUC: pure ES5 IIFE in `index.html` reads `localStorage('theme')` + `matchMedia` and writes `<html data-theme>` BEFORE Svelte hydrates. `try/catch` falls back to `'light'` with a `console.warn` on private-mode quota errors.
+- (Plan 02-05) Block.svelte unresolved-chip styling runs as a post-render `$effect` over `contentEl` + `resolvedSet`. Empty `sidebarPages` is treated as "don't know yet" — chips render neutrally instead of all looking unresolved during the initial fetch.
+- (Plan 02-05) BacklinksPanel guards against late-arriving responses on rapid page switches via `current === name` check at effect-resolution time.
+- (Plan 02-05) JournalNavigator `initialMonth` prop intentionally non-reactive (`svelte-ignore state_referenced_locally`) — once mounted the user navigates via prev/next/Hoje; parent re-mutating the prop would be surprising. Prop exposed mainly for deterministic testing.
+- (Plan 02-05) `/api/journals/today` returns a 302 to `/api/pages/YYYY_MM_DD`; the Hoje button reads `response.url` after the follow-redirect and converts `YYYY_MM_DD` → `YYYY-MM-DD` for the router shape.
+- (Plan 02-05) Frontend: 56/56 tests green, bundle 207.23 kB JS (85.89 kB gzip) + 10.68 kB CSS (2.55 kB gzip).
 
 ### Open Decisions (PRD §12)
 
@@ -97,6 +106,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Completed Phase 2 Plan 04 — per-block markdown renderer with foliom inline rules (`compositeTag` / `pageLink` / `bareTag`), segmenter-prefix + property + drawer stripping, ATX heading suppression via post-process core ruler, Prism syntax highlighting with lang label + line-numbers gutter, recursive `Block.svelte` with fold (UI-only D-34) + delegated chip click handler, `PageHeader.svelte`, block zoom (LNK-07) via second-`#` sub-fragment, 1000-block soft perf gate (705ms vs 2000ms ceiling). 2 task commits + summary. 44 frontend tests green.
-**Next action:** Plan 02-05 — Sidebar + journal navigator + dark mode toggle + backlinks panel. Wires `sidebarPages` store to `<aside>`, adds the long-deferred unresolved `.page-link.unresolved` styling once that set is loaded, persistent theme toggle, backlinks panel under main content.
-**Resumption hint:** Block contract is locked: `Block.svelte` props `{ id, depth, raw, properties, drawers, children }`; rendering pipeline is `stripForRender → md.render → {@html}` (see `frontend/src/lib/components/Block.svelte`). Tag click destination = `/search?q=#<tag>&kind=tag` (plan 02-06 will own the search palette behavior side). `sidebarPages` Svelte store exists (plan 02-03) but is unused until 02-05. Block.svelte's `.page-link` class is currently neutral — toggle to `.page-link.unresolved` based on `sidebarPages` membership lookup.
+**Last action:** Completed Phase 2 Plan 05 — Sidebar (debounced filter + Pages/Journals grouped sections + Favorites/Recents placeholders + ThemeToggle footer), JournalNavigator (month grid, prev/next, Hoje button), ThemeToggle (tri-state Claro/Auto/Escuro), BacklinksPanel (collapsible <details> under PageView with #block= deep links), Block.svelte retroactive unresolved chip styling via post-render `$effect` over `sidebarPages`-derived Set, anti-FOUC inline script in index.html, App.svelte `prefers-color-scheme` change listener. 2 task commits + summary. 56 frontend tests green (12 new). Delivers LNK-03 + LNK-06 + UI-02. Closes long-deferred unresolved page-chip styling from 02-04.
+**Next action:** Plan 02-06 — search palette (Ctrl/Cmd+K) consuming `/api/search?q&kind&limit`. Insertion points already marked: `App.svelte` (palette modal slot below `.layout`), `Sidebar.svelte` footer (Ctrl+K trigger button). `searchPalette` store from 02-03 is the open/query state; `searchResults` store is 02-06's to introduce.
+**Resumption hint:** Existing surfaces — `stores.ts` already has `searchPalette: { open, query }`. `routes.ts` has `/search` → `SearchView.svelte` (placeholder from 02-03, ready to be wired). Tag-chip clicks already route to `/search?q=#<tag>&kind=tag` (Block.svelte delegated handler from 02-04). Backend `/api/search` ships from 02-02 with `kind=content|tag` + `limit` + snippet. 02-05 left no overlapping work — App.svelte and Sidebar.svelte have explicit `// 02-06 will add:` markers.

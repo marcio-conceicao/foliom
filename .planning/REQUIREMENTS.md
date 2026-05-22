@@ -31,7 +31,7 @@
 
 - [x] **LNK-01**: Foliom recognizes `[[page]]`, `#tag`, and `#[[multi-word tag]]`; all three render inline as clickable chips/links (mid-sentence, not only at block start/end).
 - [ ] **LNK-02**: Filename encoding handles spaces, accents, `&`, and `%2F` for Logseq-style namespace pages (`Parent%2FChild.md` ↔ `[[Parent/Child]]`).
-- [ ] **LNK-03**: Each page renders a backlinks panel listing blocks that reference it, queried via the `refs` index.
+- [x] **LNK-03**: Each page renders a backlinks panel listing blocks that reference it, queried via the `refs` index.
 - [ ] **LNK-04**: Clicking a link/tag navigates to the target page; clicking an unresolved link offers to create it.
 - [ ] **LNK-05**: Journal pages live in `journals/` as `YYYY_MM_DD.md` and display a formatted title (default English long form, e.g. "May 21st, 2026", configurable; reads `:journal/page-title-format` from `config.edn` when present).
 - [x] **LNK-06**: A sidebar lists pages + recents + favorites; a journal navigator opens to today and lets the user jump to any date.
@@ -71,7 +71,7 @@
 ### Rendering & UX (UI)
 
 - [x] **UI-01**: Read-only blocks render GFM (CommonMark + tables + code fences with syntax highlighting via a lightweight library like Prism/starry-night + bold/italic/links). Callouts and other extensions are NOT in v1.
-- [ ] **UI-02**: Dark mode is supported with a toggle; default follows the OS theme.
+- [x] **UI-02**: Dark mode is supported with a toggle; default follows the OS theme.
 - [x] **UI-03**: Indentation guide lines render between nested bullets (Logseq-style visual hierarchy).
 - [x] **UI-04**: Code fences render with detected language label and line numbers.
 
@@ -137,7 +137,7 @@
 | ACPT-04 | Phase 1 | Complete |
 | LNK-01 | Phase 2 | Complete |
 | LNK-02 | Phase 2 | Pending |
-| LNK-03 | Phase 2 | Pending |
+| LNK-03 | Phase 2 | Complete |
 | LNK-05 | Phase 2 | Pending |
 | LNK-06 | Phase 2 | Complete |
 | LNK-07 | Phase 2 | Complete |
@@ -145,7 +145,7 @@
 | SCH-02 | Phase 2 | Pending |
 | SCH-03 | Phase 2 | Pending |
 | UI-01 | Phase 2 | Complete |
-| UI-02 | Phase 2 | Pending |
+| UI-02 | Phase 2 | Complete |
 | UI-03 | Phase 2 | Complete |
 | UI-04 | Phase 2 | Complete |
 | EDT-08 | Phase 2 | Complete |
