@@ -30,6 +30,10 @@ walkdir = "2.5"
 # Plan 01-05: needed by scanner::config_edn for the minimal `:hidden` reader
 # (regex-based, documented scope — full EDN parser is Phase 2 work).
 regex = "1"
+# Plan 01-07: JSON contract for the CLI (D-02). Structs in `inventory.rs`
+# and `query.rs` derive `Serialize` and are the cross-phase API surface.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 
 [dev-dependencies]
 tempfile = "3"

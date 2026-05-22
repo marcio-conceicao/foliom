@@ -5,7 +5,9 @@
 //! the Tauri desktop shell).
 
 pub mod indexer;
+pub mod inventory;
 pub mod parser;
 pub mod path;
+pub mod query;
 pub mod scanner;
 pub mod storage;
