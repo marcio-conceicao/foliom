@@ -4,15 +4,16 @@
 //! would only be justified once contention shows up in benchmarks
 //! (deferred to Phase 3 if needed).
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use foliom_core::rename::Journal;
 use foliom_core::storage::Db;
 use foliom_core::sync::SelfWriteSet;
-
-use std::path::Path;
 use foliom_core::rename::RenameState;
+use tokio::sync::broadcast;
+
+use super::dto::WatcherEvent;
 
 /// Cloneable handle to the shared backend state.
 ///
@@ -36,6 +37,13 @@ pub struct AppState {
     /// Write-ahead journal for rename operations. Shared across handlers.
     /// Plan 03-06 crash recovery: appended before SQL commit, replayed on boot.
     pub journal: Arc<Journal>,
+    /// Broadcast sender for Phase 4 watcher events (SNC-03, D-40-02).
+    ///
+    /// Each `GET /api/watch/events` SSE client subscribes by calling
+    /// `watcher_tx.subscribe()`. Capacity: 64 messages; `Lagged` → `IndexReset`
+    /// in the SSE handler (T-04-03). Created before `spawn_watcher` is called
+    /// so the sender is available for cloning into SSE handlers.
+    pub watcher_tx: Arc<broadcast::Sender<WatcherEvent>>,
 }
 
 impl RenameState for AppState {

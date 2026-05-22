@@ -111,11 +111,14 @@ fn build_state(root: &Path) -> foliom_cli::cmd::serve::state::AppState {
     let journal = Arc::new(
         foliom_core::rename::Journal::open_for_root(root).expect("journal open"),
     );
+    // Phase 4: watcher_tx required by AppState; portability tests don't exercise watcher.
+    let (watcher_tx, _) = tokio::sync::broadcast::channel(64);
     foliom_cli::cmd::serve::state::AppState {
         db: Arc::new(Mutex::new(db)),
         root: root.to_path_buf(),
         self_writes,
         journal,
+        watcher_tx: std::sync::Arc::new(watcher_tx),
     }
 }
 

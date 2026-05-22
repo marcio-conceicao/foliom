@@ -65,6 +65,8 @@ fn build_state(root: &std::path::Path) -> foliom_cli::cmd::serve::state::AppStat
     let mut db = Db::open(root).expect("open db");
     reindex(&mut db, root, ReindexMode::Full).expect("reindex");
     let self_writes = Arc::new(SelfWriteSet::new(Duration::from_secs(30)));
+    // Phase 4: watcher_tx required by AppState; rename tests don't exercise watcher.
+    let (watcher_tx, _) = tokio::sync::broadcast::channel(64);
     foliom_cli::cmd::serve::state::AppState {
         db: Arc::new(Mutex::new(db)),
         root: root.to_path_buf(),
@@ -72,6 +74,7 @@ fn build_state(root: &std::path::Path) -> foliom_cli::cmd::serve::state::AppStat
         journal: Arc::new(
             foliom_core::rename::Journal::open_for_root(root).expect("journal open"),
         ),
+        watcher_tx: std::sync::Arc::new(watcher_tx),
     }
 }
 

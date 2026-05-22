@@ -19,6 +19,7 @@ pub mod format;
 pub mod middleware;
 pub mod routes;
 pub mod state;
+pub mod watcher;
 
 use std::io;
 use std::net::{Ipv4Addr, SocketAddr, TcpListener as StdTcpListener};
@@ -32,9 +33,12 @@ use foliom_core::rename::{Journal, replay_journal};
 use foliom_core::storage::Db;
 use foliom_core::sync::SelfWriteSet;
 use tokio::net::TcpListener;
+use tokio::sync::broadcast;
 
+use crate::cmd::serve::dto::WatcherEvent;
 use crate::cmd::serve::routes::build_router;
 use crate::cmd::serve::state::AppState;
+use crate::cmd::serve::watcher::spawn_watcher;
 
 /// Argumentos do subcomando `foliom serve`.
 ///
@@ -94,15 +98,40 @@ pub fn run(args: ServeArgs) -> Result<()> {
 
     let self_writes = Arc::new(SelfWriteSet::default());
 
+    // Phase 4: broadcast channel for watcher → SSE fan-out (D-40-02, T-04-03).
+    // Capacity 64 per Q2 analysis; Lagged → IndexReset in the SSE handler.
+    let (watcher_tx, _watcher_rx) = broadcast::channel::<WatcherEvent>(64);
+    let watcher_tx = Arc::new(watcher_tx);
+
+    let db_arc = Arc::new(Mutex::new(db));
+
     let state = AppState {
-        db: Arc::new(Mutex::new(db)),
+        db: db_arc.clone(),
         root: args.root.clone(),
         self_writes: self_writes.clone(),
         journal: journal.clone(),
+        watcher_tx: watcher_tx.clone(),
     };
 
     // Replay journal BEFORE reindex so file state is consistent.
     replay_journal(&state).with_context(|| "replay do rename journal no startup")?;
+
+    // Phase 4: start filesystem watcher (SNC-03 + SNC-04).
+    // Read FOLIOM_DEBOUNCE_MS for power-user override (D-40-01).
+    let debounce_ms: u64 = std::env::var("FOLIOM_DEBOUNCE_MS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(300);
+
+    spawn_watcher(
+        args.root.clone(),
+        state.self_writes.clone(),
+        watcher_tx,
+        db_arc,
+        debounce_ms,
+    )
+    .with_context(|| format!("iniciando watcher para {:?}", args.root))?;
+
     let app = build_router(state);
 
     // ---- 4. Bind loopback with fallback ----

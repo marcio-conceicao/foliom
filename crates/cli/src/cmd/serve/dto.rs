@@ -190,3 +190,34 @@ pub struct ErrorResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub current_file_hash: Option<String>,
 }
+
+// ─── Plan 04-01 watcher DTOs ─────────────────────────────────────────────────
+
+/// Single page entry in a `WatcherEvent::PagesUpdated` payload.
+///
+/// `file_hash` is the new BLAKE3 hex hash after the external edit — the
+/// frontend uses it to detect whether the page being viewed was changed.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PageUpdatedInfo {
+    /// Page name as stored in `pages.name` (no `.md` extension).
+    pub name: String,
+    /// New BLAKE3 hash of the file contents, hex-encoded.
+    pub file_hash: String,
+}
+
+/// Events broadcast from the watcher to all SSE clients via
+/// `GET /api/watch/events`. Capacity-64 `tokio::sync::broadcast` channel;
+/// `Lagged` mapped to `IndexReset` by the SSE handler (D-40-02, T-04-03).
+#[derive(Debug, Clone)]
+pub enum WatcherEvent {
+    /// One or more `.md` files changed externally. Contains the union of all
+    /// dirty pages from the current coalescing window (D-40-03).
+    PagesUpdated(Vec<PageUpdatedInfo>),
+    /// A `.md` file was deleted from disk (no longer in corpus).
+    PageDeleted(String),
+    /// A full rescan was triggered (macOS `MustScanSubDirs`, Linux
+    /// `IN_Q_OVERFLOW`, Windows `ReadDirectoryChangesW` error — Q4/Q5).
+    /// Frontend must refetch the current page unconditionally.
+    IndexReset,
+}

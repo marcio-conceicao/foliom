@@ -11,7 +11,6 @@
 //! rescan_triggers_index_reset injects a synthetic event directly into the
 //! mpsc channel exposed by the test API — no real OS event needed.
 
-use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
