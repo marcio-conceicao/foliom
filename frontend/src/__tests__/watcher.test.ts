@@ -193,18 +193,21 @@ describe('watcher', () => {
   // pages_updated: silent reload path (no block being edited)
   // -------------------------------------------------------------------------
 
-  it('pages_updated_no_conflict_when_not_editing: no edit → fetchPage called, no externalConflict', async () => {
+  it('pages_updated_no_conflict_when_not_editing: no edit → externalConflict set (PageView calls reload)', () => {
+    // When no block is editing, watcher routes through externalConflict so
+    // PageView's $effect fires and calls reload() → detail = fresh (re-render).
+    // Directly calling fetchPage+currentPage.set does NOT update PageView's
+    // local `detail` state, so we always go via externalConflict.
     currentPage.set({ name: 'foo', isJournal: false, formattedTitle: null, blocks: [], fileHash: 'oldhash', id: 1 });
     currentlyEditing.set(null);
 
     startWatcher();
     fireMessage('pages_updated', [{ name: 'foo', fileHash: 'abc' }]);
 
-    // Flush microtask queue so the fetchPage promise resolves
-    await vi.runAllTimersAsync();
-
-    expect(fetchPage).toHaveBeenCalledWith('foo');
-    expect(get(externalConflict)).toBeNull();
+    expect(get(externalConflict)).toEqual({ newFileHash: 'abc' });
+    // fetchPage is NOT called directly from watcher — PageView's $effect
+    // calls reload() which fetches, but that happens in the Svelte component.
+    expect(fetchPage).not.toHaveBeenCalled();
   });
 
   // -------------------------------------------------------------------------

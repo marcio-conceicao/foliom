@@ -77,15 +77,13 @@ function handlePagesUpdated(e: Event): void {
   const matched = pages.find((p) => p.name === page.name);
   if (!matched) return;
 
-  if (get(currentlyEditing) !== null) {
-    // Block is being edited → set conflict store so PageView can show the banner
-    externalConflict.set({ newFileHash: matched.fileHash });
-  } else {
-    // No active editor → silent reload
-    void fetchPage(page.name).then((fresh) => {
-      currentPage.set(fresh);
-    });
-  }
+  // Always route through externalConflict so PageView's $effect fires.
+  // When a block is being edited, PageView shows the staleConflict banner.
+  // When no block is being edited, PageView calls reload() which sets
+  // local `detail = fresh` — the UI re-renders reactively.
+  // (Bypassing externalConflict and setting currentPage directly does NOT
+  // re-render PageView because PageView renders from local `detail` state.)
+  externalConflict.set({ newFileHash: matched.fileHash });
 }
 
 function handleIndexReset(): void {
