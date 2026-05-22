@@ -22,9 +22,12 @@ export type BoundaryKey =
  * onBoundary returns true if the event was handled (prevents CM6 default).
  * onSave is called with the final doc string after unmount.
  * completions is the CM6 autocomplete source.
+ * onPaste (optional) — called with clipboard text; return true if handled.
+ *   If returns true, CM6's default paste is suppressed.
  */
 export interface BlockEditorCallbacks {
   onBoundary: (key: BoundaryKey, view: EditorView) => boolean;
   onSave: (raw: string) => void;
   completions: (ctx: import('@codemirror/autocomplete').CompletionContext) => Promise<import('@codemirror/autocomplete').CompletionResult | null>;
+  onPaste?: (clipboardText: string, view: EditorView) => boolean | Promise<boolean>;
 }

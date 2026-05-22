@@ -244,6 +244,7 @@ describe('BulletPopover', () => {
 
   it('calls onClose when Escape is pressed', async () => {
     const { default: BulletPopover } = await import('../BulletPopover.svelte');
+    const { tick } = await import('svelte');
     const block = makeBlock();
     const onClose = vi.fn();
     const onAction = vi.fn();
@@ -252,6 +253,9 @@ describe('BulletPopover', () => {
       target: container,
       props: { block, onClose, onAction },
     });
+
+    // Wait for $effect to register the keydown listener.
+    await tick();
 
     const escEvent = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true });
     document.dispatchEvent(escEvent);

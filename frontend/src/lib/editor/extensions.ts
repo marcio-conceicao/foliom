@@ -6,7 +6,7 @@
 // 1. Prec.highest boundary keymap  — intercepts boundary keys
 // 2. history()                     — per-instance undo stack (EDT-10)
 // 3. historyKeymap                 — Ctrl+Z / Ctrl+Shift+Z inside edit mode
-// 4. autocompletion                — [[link]] and #tag completion (EDT-09)
+// 4. autocompletion                — [[link]] and #tag completion (EDT-09, plan 03-05)
 // 5. markdown()                    — syntax highlighting (adds markdownKeymap with Prec.high)
 // 6. defaultKeymap                 — lowest precedence fallback
 // 7. drawSelection + lineWrapping  — visual affordances
@@ -62,5 +62,35 @@ export function blockEditorExtensions(cb: BlockEditorCallbacks): Extension[] {
     // Visual affordances
     drawSelection(),
     EditorView.lineWrapping,
+
+    // 8. Paste handler (D-30-07): if onPaste is provided, route clipboard text through it.
+    // If onPaste returns true, suppress CM6's default paste.
+    // This must be LAST so the boundary keymap and history extensions are already in place.
+    ...(cb.onPaste
+      ? [
+          EditorView.domEventHandlers({
+            paste(event, view) {
+              const text = event.clipboardData?.getData('text/plain') ?? '';
+              const result = cb.onPaste!(text, view);
+              if (result instanceof Promise) {
+                void result.then((handled) => {
+                  if (handled) {
+                    // Already handled asynchronously; CM6 default is not preventable
+                    // after the event is processed, but the blocks will have been inserted.
+                  }
+                });
+                // Prevent CM6 default paste immediately; the promise inserts blocks.
+                event.preventDefault();
+                return true;
+              }
+              if (result) {
+                event.preventDefault();
+                return true;
+              }
+              return false;
+            },
+          }),
+        ]
+      : []),
   ];
 }

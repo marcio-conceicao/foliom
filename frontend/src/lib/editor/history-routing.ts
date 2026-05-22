@@ -9,12 +9,12 @@
 // handles Ctrl+Z / Ctrl+Shift+Z — we do nothing.
 //
 // When activeElement is outside any .block.editing, Ctrl+Z pops the
-// treeOpLog and invokes a placeholder inverse op (console log in plan 03-04;
-// real inverse application lands in plan 03-05).
+// treeOpLog and invokes applyInverse (plan 03-05).
 //
 // Returns a disposer for cleanup (HMR / test teardown).
 
 import { treeOpLog } from '../stores/treeOpLog';
+import type { TreeOp } from '../stores/treeOpLog';
 
 function isInsideEditingBlock(el: Element | null): boolean {
   if (!el) return false;
@@ -22,11 +22,126 @@ function isInsideEditingBlock(el: Element | null): boolean {
 }
 
 /**
+ * Apply the inverse of a TreeOp against the server.
+ *
+ * Per plan 03-05 spec:
+ *   - Indent / Outdent → PATCH /api/blocks/:id/structure with depth = prevDepth
+ *   - Delete           → POST  /api/blocks to restore the snapshot
+ *   - Move             → PATCH /api/blocks/:id/structure with parent_id + ord
+ *   - Merge / Split    → complex; deferred to plan 03-06 (stub logs + returns)
+ *
+ * @param op          The TreeOp to invert.
+ * @param prevHash    The current file hash (from pageDetail.fileHash).
+ * @param pageId      Page ID — required for Delete (POST /api/blocks needs it).
+ * @param onConflict  Called with the op if server returns 409 so caller can
+ *                    re-push to treeOpLog and surface the stale banner.
+ */
+export async function applyInverse(
+  op: TreeOp,
+  prevHash: string,
+  pageId?: number,
+  onConflict?: (op: TreeOp) => void,
+): Promise<void> {
+  try {
+    switch (op.kind) {
+      case 'Indent':
+      case 'Outdent': {
+        // Restore previous depth via PATCH /structure
+        const res = await fetch(`/api/blocks/${op.blockId}/structure`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ op: 'move', prevHash, depth: op.prevDepth }),
+        });
+        if (res.status === 409) {
+          onConflict?.(op);
+          return;
+        }
+        if (!res.ok) {
+          console.error(`[applyInverse] PATCH failed: ${res.status}`, op);
+        }
+        break;
+      }
+
+      case 'Delete': {
+        // Restore the deleted block via POST /api/blocks
+        const { snapshot } = op;
+        const res = await fetch('/api/blocks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            pageId: pageId ?? 0,
+            parentId: snapshot.parentId,
+            ord: snapshot.ord,
+            depth: snapshot.depth,
+            raw: snapshot.raw,
+            prevHash,
+          }),
+        });
+        if (res.status === 409) {
+          onConflict?.(op);
+          return;
+        }
+        if (!res.ok) {
+          console.error(`[applyInverse] POST failed: ${res.status}`, op);
+        }
+        break;
+      }
+
+      case 'Move': {
+        // Restore previous position via PATCH /structure
+        const res = await fetch(`/api/blocks/${op.blockId}/structure`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            op: 'move',
+            prevHash,
+            parentId: op.prevParentId,
+            ord: op.prevOrd,
+          }),
+        });
+        if (res.status === 409) {
+          onConflict?.(op);
+          return;
+        }
+        if (!res.ok) {
+          console.error(`[applyInverse] PATCH move failed: ${res.status}`, op);
+        }
+        break;
+      }
+
+      case 'Merge':
+      case 'Split': {
+        // Complex inverse — deferred to plan 03-06.
+        // Split inverse: deleteBlock(newBlockId) + putBlock(originalId, rawBeforeSplit)
+        // Merge inverse: postBlock(recreate merged block) + putBlock(predecessor, pre-merge raw)
+        // For now, log as unsupported — the op details are preserved but not executed.
+        console.debug('[applyInverse] Merge/Split inverse not yet implemented', op);
+        break;
+      }
+
+      default:
+        // Exhaustive check — TypeScript will warn if a variant is missing.
+        console.warn('[applyInverse] unknown op kind', op);
+    }
+  } catch (e) {
+    console.error('[applyInverse] network error', e, op);
+  }
+}
+
+/**
  * Bind the global Ctrl+Z / Ctrl+Shift+Z listener.
  * Call once from App.svelte's $effect.
  * Returns a disposer that removes the listener.
+ *
+ * @param getPageHash  Optional callback to get the current page file hash.
+ * @param getPageId    Optional callback to get the current page ID.
+ * @param onConflict   Optional callback to surface stale-conflict banner.
  */
-export function bindHistoryRouting(): () => void {
+export function bindHistoryRouting(
+  getPageHash?: () => string,
+  getPageId?: () => number | undefined,
+  onConflict?: (op: TreeOp) => void,
+): () => void {
   function handler(e: KeyboardEvent): void {
     const isMod = e.ctrlKey || e.metaKey;
     const isZ = e.key.toLowerCase() === 'z';
@@ -37,13 +152,18 @@ export function bindHistoryRouting(): () => void {
       return;
     }
 
-    // Outside edit mode: pop the tree-op log and invoke placeholder inverse.
+    // Outside edit mode: pop the tree-op log and invoke inverse.
     e.preventDefault();
     const op = treeOpLog.pop();
     if (op) {
-      // Plan 03-04 skeleton: real inverse application lands in plan 03-05.
-      // The log is correct; the inverse op is a placeholder until 03-05 wires it.
-      console.debug('[treeOpLog inverse]', op);
+      const prevHash = getPageHash?.() ?? '';
+      const pageId = getPageId?.();
+
+      void applyInverse(op, prevHash, pageId, (restoredOp) => {
+        // On 409: restore the op to the log and surface the banner.
+        treeOpLog.push(restoredOp);
+        onConflict?.(restoredOp);
+      });
     }
   }
 
