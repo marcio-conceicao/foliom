@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 2 plan 02-05 executed
-last_updated: "2026-05-22T03:50:00.000Z"
+status: Phase 2 plan 02-06 executed
+last_updated: "2026-05-22T00:56:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 15
-  completed_plans: 13
-  percent: 87
+  completed_plans: 14
+  percent: 93
 ---
 
 # Foliom — Project State
 
-**Last updated:** 2026-05-22
+**Last updated:** 2026-05-22 (Plan 02-06 executed)
 
 ---
 
@@ -29,10 +29,10 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 2 — Read-Only Web UI (in progress, 5 of 8 plans complete: 02-01, 02-02, 02-03, 02-04, 02-05)
-- **Plan:** 02-05 complete (Sidebar + JournalNavigator + ThemeToggle + BacklinksPanel + unresolved chip styling); next is 02-06 (search palette Ctrl+K)
-- **Status:** Phase 2 plan 02-05 executed
-- **Progress:** [████████▊░] 87%
+- **Phase:** 2 — Read-Only Web UI (in progress, 6 of 8 plans complete: 02-01, 02-02, 02-03, 02-04, 02-05, 02-06)
+- **Plan:** 02-06 complete (search palette Ctrl/Cmd+K + snippet sanitizer + #/search inline + Sidebar trigger); next is 02-07 (integration + smoke E2E)
+- **Status:** Phase 2 plan 02-06 executed
+- **Progress:** [█████████▎] 93%
 
 ---
 
@@ -52,6 +52,7 @@ progress:
 | Phase 02 P03 | 10 | 2 tasks | 23 files |
 | Phase 02 P04 | 12m | 2 tasks | 16 files |
 | Phase 02 P05 | 7m | 2 tasks | 16 files |
+| Phase 02 P06 | 14m | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,14 @@ progress:
 - (Plan 02-05) JournalNavigator `initialMonth` prop intentionally non-reactive (`svelte-ignore state_referenced_locally`) — once mounted the user navigates via prev/next/Hoje; parent re-mutating the prop would be surprising. Prop exposed mainly for deterministic testing.
 - (Plan 02-05) `/api/journals/today` returns a 302 to `/api/pages/YYYY_MM_DD`; the Hoje button reads `response.url` after the follow-redirect and converts `YYYY_MM_DD` → `YYYY-MM-DD` for the router shape.
 - (Plan 02-05) Frontend: 56/56 tests green, bundle 207.23 kB JS (85.89 kB gzip) + 10.68 kB CSS (2.55 kB gzip).
+- (Plan 02-06) Snippet sanitization for `/api/search` results is a hand-rolled allow-list (`lib/sanitize.ts`): escape all HTML then reintroduce only literal `<mark>`/`</mark>`. Rationale: T-02-20 surface is two tokens; DOMPurify (~20 KB gz) would dent the cold-start budget for no real safety win. Test passes `<script>alert(1)</script>` through the snippet and asserts no script element appears.
+- (Plan 02-06) `lib/keys.ts` owns ALL app-level shortcuts — single `window.keydown` listener returning a disposer. Cmd/Ctrl+K modifier OVERRIDES the editable-target gate by design so the palette is always summonable. Plain Esc defers to native input clearing inside `<input>`/`<textarea>`/`[contenteditable]`; outside those it closes the palette. Inside the palette modal the input's own onkeydown handler reasserts Esc-to-close so the user doesn't get stuck.
+- (Plan 02-06) Palette `[[` branch caches `/api/page-titles` in a module-level `Promise<string[]>` so subsequent `[[` keystrokes are pure client-side filtering. Cache lives for the page session; titles change rarely and the branch is forgiving of staleness.
+- (Plan 02-06) AbortController IS wired into each debounced run (T-02-22). A slow `/api/search` response from an older keystroke cannot clobber results from a newer one; AbortError is silently swallowed.
+- (Plan 02-06) `Number(hit.blockId)` coercion + `>0` guard (T-02-21). Non-numeric or zero/negative blockId → omit `#block=` fragment entirely → user lands at page top. blockId=0 is a documented sentinel used by the `[[` page-titles branch.
+- (Plan 02-06) svelte-spa-router treats `#` as its own route boundary; foliom layers the `#block=N` sub-fragment on top via `push(target)` then a `requestAnimationFrame` callback that rewrites `window.location.hash` to include both segments. The 02-04 zoom listener picks up the hashchange and scrolls.
+- (Plan 02-06) Single `SearchPalette.svelte` with `mode='modal'|'inline'` prop instead of extracting a SearchPanel — keeps the test surface small and avoids prop-drilling. `SearchView.svelte` mounts it in inline mode and pre-populates the store query from `window.location.hash`.
+- (Plan 02-06) Frontend: 73/73 tests green (17 new), bundle 212.57 kB JS (87.74 kB gzip) + 12.60 kB CSS (2.98 kB gzip). +5.3 kB JS / +1.9 kB CSS vs 02-05 baseline.
 
 ### Open Decisions (PRD §12)
 
@@ -106,6 +115,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Completed Phase 2 Plan 05 — Sidebar (debounced filter + Pages/Journals grouped sections + Favorites/Recents placeholders + ThemeToggle footer), JournalNavigator (month grid, prev/next, Hoje button), ThemeToggle (tri-state Claro/Auto/Escuro), BacklinksPanel (collapsible <details> under PageView with #block= deep links), Block.svelte retroactive unresolved chip styling via post-render `$effect` over `sidebarPages`-derived Set, anti-FOUC inline script in index.html, App.svelte `prefers-color-scheme` change listener. 2 task commits + summary. 56 frontend tests green (12 new). Delivers LNK-03 + LNK-06 + UI-02. Closes long-deferred unresolved page-chip styling from 02-04.
-**Next action:** Plan 02-06 — search palette (Ctrl/Cmd+K) consuming `/api/search?q&kind&limit`. Insertion points already marked: `App.svelte` (palette modal slot below `.layout`), `Sidebar.svelte` footer (Ctrl+K trigger button). `searchPalette` store from 02-03 is the open/query state; `searchResults` store is 02-06's to introduce.
-**Resumption hint:** Existing surfaces — `stores.ts` already has `searchPalette: { open, query }`. `routes.ts` has `/search` → `SearchView.svelte` (placeholder from 02-03, ready to be wired). Tag-chip clicks already route to `/search?q=#<tag>&kind=tag` (Block.svelte delegated handler from 02-04). Backend `/api/search` ships from 02-02 with `kind=content|tag` + `limit` + snippet. 02-05 left no overlapping work — App.svelte and Sidebar.svelte have explicit `// 02-06 will add:` markers.
+**Last action:** Completed Phase 2 Plan 06 — search palette (`SCH-01`/`SCH-02`/`SCH-03`/`LNK-07`). `lib/keys.ts` global keymap, `SearchPalette.svelte` modal + inline body, `SearchResult.svelte` row, `lib/sanitize.ts` `<mark>` allow-list, Sidebar "Buscar (Ctrl+K)" footer trigger, `SearchView.svelte` rewired to render the palette body in inline mode for `#/search?q=` deep links. 150ms debounce, AbortController cancellation, three-branch routing (`#`→tag, `[[`→page-titles cached, else content), keyboard nav + click-to-block via `#/pages/<page>#block=<blockId>`. 4 commits (2 RED, 2 GREEN). 73/73 tests green (17 new: 8 keys + 9 palette). Bundle 212.57 kB / 87.74 kB gz.
+**Next action:** Plan 02-07 — integration + smoke E2E. With wave 4 done, the full UI (sidebar + page view + backlinks + palette + zoom + theme) is on the same store/route surface; 02-07 should drive end-to-end flows against a live `foliom serve` and pin the Ctrl+K → result → block-scroll path as a regression check. Plan 02-08 (Wave 6) is perf gates; bundle headroom is healthy.
+**Resumption hint:** Phase 2 progress: 6 of 8 plans complete. Frontend stack confirmed working: Svelte 5 runes + Vite + happy-dom vitest; 73 tests across 12 suites. App.svelte mounts `<SearchPalette>` on `searchPalette.open`. The zoom listener installed in `main.ts` (from 02-04) consumes the `#block=N` fragments the palette emits. `lib/keys.ts` is the canonical place to add future app-wide shortcuts. Pre-existing `svelte-check` warnings on `routes.ts` (Component params type mismatch for hash routes) are NOT a 02-06 regression — log as a hygiene item for 02-07 or 02-08.

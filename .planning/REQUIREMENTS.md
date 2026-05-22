@@ -64,9 +64,9 @@
 
 ### Search (SCH)
 
-- [ ] **SCH-01**: Full-text search uses SQLite FTS5 (external-content rows per block) — no requirement to hold content in memory.
-- [ ] **SCH-02**: Search results show a snippet with highlighted match and navigate directly to the matching block on click.
-- [ ] **SCH-03**: A global `Ctrl/Cmd+K` palette opens a unified search across pages, tags, and block content.
+- [x] **SCH-01**: Full-text search uses SQLite FTS5 (external-content rows per block) — no requirement to hold content in memory.
+- [x] **SCH-02**: Search results show a snippet with highlighted match and navigate directly to the matching block on click.
+- [x] **SCH-03**: A global `Ctrl/Cmd+K` palette opens a unified search across pages, tags, and block content.
 
 ### Rendering & UX (UI)
 
@@ -141,9 +141,9 @@
 | LNK-05 | Phase 2 | Pending |
 | LNK-06 | Phase 2 | Complete |
 | LNK-07 | Phase 2 | Complete |
-| SCH-01 | Phase 2 | Pending |
-| SCH-02 | Phase 2 | Pending |
-| SCH-03 | Phase 2 | Pending |
+| SCH-01 | Phase 2 | Complete |
+| SCH-02 | Phase 2 | Complete |
+| SCH-03 | Phase 2 | Complete |
 | UI-01 | Phase 2 | Complete |
 | UI-02 | Phase 2 | Complete |
 | UI-03 | Phase 2 | Complete |
