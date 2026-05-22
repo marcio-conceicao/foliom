@@ -1,11 +1,13 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { fetchPage, postBlock, deleteBlock, type PageDetail, type MutationResponse, type Block as BlockData } from '../api';
+  import { fetchPage, postBlock, deleteBlock, putBlock, type PageDetail, type MutationResponse, type Block as BlockData } from '../api';
   import { currentPage } from '../stores';
   import Block from '../components/Block.svelte';
   import PageHeader from '../components/PageHeader.svelte';
   import BacklinksPanel from '../components/BacklinksPanel.svelte';
   import { applyZoomFromHash } from '../zoom';
+  import { treeOpLog } from '../stores/treeOpLog';
+  import { currentlyEditing } from '../stores/editing';
 
   interface Params { name: string }
   let { params }: { params: Params } = $props();
@@ -110,6 +112,105 @@
       }
     });
   }
+
+  /**
+   * Flatten the nested block tree to a depth-first ordered list.
+   * Prelude blocks (depth === -1) are expanded to their children in-place.
+   */
+  function flattenBlocks(blocks: BlockData[]): BlockData[] {
+    const out: BlockData[] = [];
+    function walk(bs: BlockData[]): void {
+      for (const b of bs) {
+        if (b.depth === -1) {
+          walk(b.children);
+        } else {
+          out.push(b);
+          walk(b.children);
+        }
+      }
+    }
+    walk(blocks);
+    return out;
+  }
+
+  /**
+   * EDT-06: Merge currentBlockId into the preceding block.
+   * Sequence:
+   *   1. DELETE /api/blocks/:currentBlockId (removes from file)
+   *   2. PUT  /api/blocks/:prevId { raw: prevRaw + currentRaw, prevHash }
+   *   3. Push a Merge TreeOp with full snapshot for undo
+   *   4. Update detail from final MutationResponse
+   */
+  async function handleMerge(currentBlockId: number, currentRaw: string, currentFileHash: string): Promise<void> {
+    if (!detail) return;
+
+    const flat = flattenBlocks(detail.blocks);
+    const currentIdx = flat.findIndex((b) => b.id === currentBlockId);
+    if (currentIdx <= 0) {
+      // No previous block — nothing to merge into (first block in page).
+      return;
+    }
+    const prevBlock = flat[currentIdx - 1];
+    const prevRaw = prevBlock.raw;
+
+    // Step 1: Delete the current block from the file.
+    const deleteResult = await deleteBlock(currentBlockId, currentFileHash);
+    if ('stale' in deleteResult) {
+      handleStaleConflict(deleteResult.currentFileHash);
+      return;
+    }
+    // deleteBlock returns 204 → { blockSubtree: [], fileHash: '' } or a MutationResponse.
+    // Update detail if we got a real subtree; always update fileHash.
+    const newHash = deleteResult.fileHash || detail.fileHash || '';
+    if (deleteResult.blockSubtree.length > 0) {
+      detail = { ...detail, fileHash: newHash, blocks: mergeBlockSubtree(detail.blocks, deleteResult.blockSubtree) };
+    } else {
+      detail = { ...detail, fileHash: newHash };
+    }
+    currentPage.set(detail);
+
+    // Step 2: Update prevBlock with the concatenated raw text.
+    const mergedRaw = prevRaw + currentRaw;
+    const putResult = await putBlock(prevBlock.id, mergedRaw, detail.fileHash ?? '');
+    if ('stale' in putResult) {
+      handleStaleConflict(putResult.currentFileHash);
+      return;
+    }
+
+    // Step 3: Push the Merge TreeOp with full undo snapshot.
+    treeOpLog.push({
+      kind: 'Merge',
+      blockId: currentBlockId,
+      mergedIntoId: prevBlock.id,
+      originalRaw: currentRaw,
+      prevOriginalRaw: prevRaw,
+    });
+
+    // Step 4: Apply MutationResponse from the PUT.
+    handleBlockSaved(putResult);
+
+    // Focus the previous block after the merge (place cursor at end of prevRaw boundary).
+    await tick();
+    currentlyEditing.set(prevBlock.id);
+  }
+
+  /**
+   * EDT-07: Focus the adjacent block when ArrowUp/Down is pressed at an edge.
+   * PageView knows the flat block ordering; it sets currentlyEditing to the adjacent block.
+   */
+  function handleNavigate(direction: 'up' | 'down', currentBlockId: number): void {
+    if (!detail) return;
+
+    const flat = flattenBlocks(detail.blocks);
+    const currentIdx = flat.findIndex((b) => b.id === currentBlockId);
+    if (currentIdx < 0) return;
+
+    const targetIdx = direction === 'up' ? currentIdx - 1 : currentIdx + 1;
+    if (targetIdx < 0 || targetIdx >= flat.length) return;
+
+    const targetBlock = flat[targetIdx];
+    currentlyEditing.set(targetBlock.id);
+  }
 </script>
 
 <section class="page">
@@ -138,6 +239,8 @@
         onStaleConflict={handleStaleConflict}
         onBlockDeleted={handleBlockDeleted}
         onBlockSaved={handleBlockSaved}
+        onMerge={handleMerge}
+        onNavigate={handleNavigate}
       />
     {/each}
     <BacklinksPanel name={detail.name} />

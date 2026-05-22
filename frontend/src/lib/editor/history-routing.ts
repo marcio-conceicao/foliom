@@ -109,13 +109,73 @@ export async function applyInverse(
         break;
       }
 
-      case 'Merge':
+      case 'Merge': {
+        // Inverse of Merge = Split the merged block back to two blocks.
+        // The merged block is now at op.mergedIntoId with raw = prevOriginalRaw + originalRaw.
+        // We restore it to prevOriginalRaw and re-create the deleted block (originalRaw).
+        //
+        // Step 1: PUT /api/blocks/:mergedIntoId with prevOriginalRaw to restore predecessor text.
+        const mergeRestoreRes = await fetch(`/api/blocks/${op.mergedIntoId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ raw: op.prevOriginalRaw, prevHash }),
+        });
+        if (mergeRestoreRes.status === 409) {
+          onConflict?.(op);
+          return;
+        }
+        if (!mergeRestoreRes.ok) {
+          console.error(`[applyInverse] Merge undo PUT failed: ${mergeRestoreRes.status}`, op);
+          return;
+        }
+        // Get updated hash from PUT response for the next call.
+        const mergeRestoreBody = await mergeRestoreRes.json() as { fileHash?: string };
+        const updatedHashAfterMergeRestore = mergeRestoreBody.fileHash ?? prevHash;
+
+        // Step 2: POST /api/blocks to recreate the original block (op.blockId was deleted).
+        // We post it as a sibling after mergedIntoId with the original raw.
+        if (pageId) {
+          const mergeRecreateRes = await fetch('/api/blocks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({
+              pageId,
+              parentId: null,
+              ord: 9999, // server will normalize position; exact ord recovered if snapshot added later
+              depth: 0,
+              raw: op.originalRaw,
+              prevHash: updatedHashAfterMergeRestore,
+            }),
+          });
+          if (mergeRecreateRes.status === 409) {
+            onConflict?.(op);
+            return;
+          }
+          if (!mergeRecreateRes.ok) {
+            console.error(`[applyInverse] Merge undo POST failed: ${mergeRecreateRes.status}`, op);
+          }
+        }
+        break;
+      }
+
       case 'Split': {
-        // Complex inverse — deferred to plan 03-06.
-        // Split inverse: deleteBlock(newBlockId) + putBlock(originalId, rawBeforeSplit)
-        // Merge inverse: postBlock(recreate merged block) + putBlock(predecessor, pre-merge raw)
-        // For now, log as unsupported — the op details are preserved but not executed.
-        console.debug('[applyInverse] Merge/Split inverse not yet implemented', op);
+        // Inverse of Split = merge the two blocks back.
+        // op.newBlockId was created by the Split. We delete it, and restore op.blockId raw.
+        // (We don't store raw before/after split in the current TreeOp, so we can only
+        //  delete the new block — a best-effort undo that leaves original block content intact.)
+        if (op.newBlockId > 0) {
+          const splitDeleteRes = await fetch(
+            `/api/blocks/${op.newBlockId}?prevHash=${encodeURIComponent(prevHash)}`,
+            { method: 'DELETE', headers: { Accept: 'application/json' } },
+          );
+          if (splitDeleteRes.status === 409) {
+            onConflict?.(op);
+            return;
+          }
+          if (!splitDeleteRes.ok && splitDeleteRes.status !== 204) {
+            console.error(`[applyInverse] Split undo DELETE failed: ${splitDeleteRes.status}`, op);
+          }
+        }
         break;
       }
 

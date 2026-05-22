@@ -24,6 +24,10 @@
     onStaleConflict?: (serverHash: string) => void;
     onBlockDeleted?: (blockId: number, prevHash: string) => void;
     onBlockSaved?: (response: MutationResponse) => void;
+    /** EDT-06: Merge current block into the previous block. */
+    onMerge?: (currentBlockId: number, currentRaw: string, currentFileHash: string) => void;
+    /** EDT-07: Move editing focus to the adjacent block ('up' = previous, 'down' = next). */
+    onNavigate?: (direction: 'up' | 'down', currentBlockId: number) => void;
   };
 
   let {
@@ -38,6 +42,8 @@
     onStaleConflict,
     onBlockDeleted,
     onBlockSaved,
+    onMerge,
+    onNavigate,
   }: Props = $props();
 
   // D-34: fold state is UI-only — no fetch, no persistence in Phase 2.
@@ -186,15 +192,14 @@
           return true;
         }
         if (sel.head === 0 && doc.length > 0) {
-          // EDT-06: Backspace at start of non-empty → Merge with previous.
-          treeOpLog.push({
-            kind: 'Merge',
-            blockId: id,
-            mergedIntoId: -1, // resolved by PageView in plan 03-05
-            originalRaw: currentRaw,
-          });
-          // For now: let CM6 handle char-delete (full merge in plan 03-05)
-          return false;
+          // EDT-06: Backspace at start of non-empty → Merge with previous block.
+          // Save current text, unmount, then signal PageView to perform the merge.
+          const docText = blockEditor.readDocSafe();
+          const rawToMerge = docText !== null ? docText : currentRaw;
+          blockEditor.unmount();
+          editing = false;
+          onMerge?.(id, rawToMerge, fileHash);
+          return true;
         }
         // Mid-content: let CM6 default char-delete
         return false;
@@ -204,8 +209,9 @@
         // EDT-07: Navigate to previous block when at first line.
         const firstLine = doc.lineAt(0);
         if (sel.head <= firstLine.to) {
-          void saveAndUnmount();
-          // Navigation signal to PageView — placeholder; full impl in plan 03-05
+          void saveAndUnmount().then(() => {
+            onNavigate?.('up', id);
+          });
           return true;
         }
         return false;
@@ -215,7 +221,9 @@
         // EDT-07: Navigate to next block when at last line.
         const lastLine = doc.line(doc.lines);
         if (sel.head >= lastLine.from) {
-          void saveAndUnmount();
+          void saveAndUnmount().then(() => {
+            onNavigate?.('down', id);
+          });
           return true;
         }
         return false;
@@ -395,7 +403,7 @@
 
 {#if isPrelude}
   {#each children as child (child.id)}
-    <Self {...child} {fileHash} {onSiblingCreate} {onStaleConflict} {onBlockDeleted} {onBlockSaved} />
+    <Self {...child} {fileHash} {onSiblingCreate} {onStaleConflict} {onBlockDeleted} {onBlockSaved} {onMerge} {onNavigate} />
   {/each}
 {:else}
   <div class="block" class:editing data-block-id={id} data-depth={depth} id={`block-${id}`}>
@@ -457,7 +465,7 @@
   {#if !folded && children.length > 0}
     <div class="children" style:--depth={depth + 1}>
       {#each children as child (child.id)}
-        <Self {...child} {fileHash} {onSiblingCreate} {onStaleConflict} {onBlockDeleted} {onBlockSaved} />
+        <Self {...child} {fileHash} {onSiblingCreate} {onStaleConflict} {onBlockDeleted} {onBlockSaved} {onMerge} {onNavigate} />
       {/each}
     </div>
   {/if}

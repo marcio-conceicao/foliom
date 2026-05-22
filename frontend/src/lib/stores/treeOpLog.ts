@@ -34,7 +34,7 @@ export interface BlockSnapshot {
 export type TreeOp =
   | { kind: 'Indent'; blockId: number; prevDepth: number }
   | { kind: 'Outdent'; blockId: number; prevDepth: number }
-  | { kind: 'Merge'; blockId: number; mergedIntoId: number; originalRaw: string }
+  | { kind: 'Merge'; blockId: number; mergedIntoId: number; originalRaw: string; prevOriginalRaw: string }
   | { kind: 'Split'; blockId: number; atOffset: number; newBlockId: number }
   | { kind: 'Move'; blockId: number; prevParentId: number | null; prevOrd: number }
   | { kind: 'Delete'; blockId: number; snapshot: BlockSnapshot };
