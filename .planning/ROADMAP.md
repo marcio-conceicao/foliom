@@ -49,7 +49,15 @@
   3. `Ctrl/Cmd+K` opens a unified search palette across pages, tags, and block content via SQLite FTS5; results show highlighted snippets and click-navigate to the matching block.
   4. Read-only blocks render GFM (CommonMark + tables + syntax-highlighted code fences with line numbers + bold/italic/links) with indentation guide lines and dark-mode toggle (default follows OS).
   5. Cold start on a 5,000-note generated corpus completes in under 2 seconds (ACPT-02) and idle RSS stays under 300 MB (ACPT-03) on the reference laptop, with only visible content held in memory.
-**Plans**: TBD
+**Plans**: 8 plans
+- [ ] 02-01-PLAN.md — `foliom serve` scaffold: axum 0.7 on 127.0.0.1, startup reindex, Host allowlist, /api/health
+- [ ] 02-02-PLAN.md — REST API: pages, page detail (nested tree), backlinks, journals (today + range), search (FTS5 + tag-refs), page-titles
+- [ ] 02-03-PLAN.md — Frontend scaffold: Svelte 5 + Vite + TS + svelte-spa-router + stores + api wrappers + vitest
+- [ ] 02-04-PLAN.md — Block renderer: markdown-it custom rules ([[link]]/#tag/#[[tag]]) + Prism + GFM + indent guides + fold + block zoom
+- [ ] 02-05-PLAN.md — Sidebar + journal navigator + theme toggle + backlinks panel + unresolved chip styling
+- [ ] 02-06-PLAN.md — Search palette (Ctrl/Cmd+K) with FTS5 + tag-refs + page-title routing + click-to-block deep links
+- [ ] 02-07-PLAN.md — rust-embed prod build + dev-redirect to Vite + --open flag + SPA fallback
+- [ ] 02-08-PLAN.md — Perf harness (Criterion cold-start + sysinfo RSS) + 5k corpus gen + CI matrix update + ACPT-02/03 gates
 **UI hint**: yes
 
 ### Phase 3: Outliner Editor
@@ -95,7 +103,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Headless Indexing Core | 7/7 | Complete   | 2026-05-22 |
-| 2. Read-Only Web UI | 0/0 | Not started | - |
+| 2. Read-Only Web UI | 0/8 | Not started | - |
 | 3. Outliner Editor | 0/0 | Not started | - |
 | 4. Disk Sync | 0/0 | Not started | - |
 | 5. Desktop Packaging | 0/0 | Not started | - |
