@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-05-22T12:58:47.067Z"
+status: verifying
+last_updated: "2026-05-22T13:38:28.239Z"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 25
-  completed_plans: 25
-  percent: 100
+  total_plans: 28
+  completed_plans: 26
+  percent: 93
 ---
 
 # Foliom — Project State
 
-**Last updated:** 2026-05-22 (Plan 04-03 executed — phase-4-watcher-smoke CI job + ACPT-04-WATCHER.md; SNC-03/04/06 CI-closed; Phase 4 complete; 2min)
+**Last updated:** 2026-05-22 (Plan 05-01 executed — Tauri 2 desktop shell scaffold; BOUND_PORT OnceLock; src-tauri/ crate; WebviewUrl::External; 11min)
 
 ---
 
@@ -31,10 +31,10 @@ progress:
 - **Milestone:** v1
 - **Milestone:** v1
 - **Milestone:** v1
-- **Phase:** 4 — Disk Sync (COMPLETE — all 3 plans: 04-01, 04-02, 04-03 done).
-- **Plan:** 04-03 complete (phase-4-watcher-smoke CI job + ACPT-04-WATCHER.md; SNC-03/04/06 fulfilled; Phase 4 CI-complete; 2min).
-- **Status:** Phase 4 complete — ready for verification. Phase 5 next.
-- **Progress:** [██████████] 100%
+- **Phase:** 5 — Desktop Packaging (IN PROGRESS — 1/3 plans: 05-01 done).
+- **Plan:** 05-01 complete (Tauri 2 shell scaffold — src-tauri/ crate, BOUND_PORT OnceLock, WebviewUrl::External; DSK-01 code complete; 11min).
+- **Status:** Phase 5 in progress — 05-01 done. 05-02 (release CI) and 05-03 (footprint gate) next.
+- **Progress:** [█████████░] 93%
 
 ---
 
@@ -64,6 +64,7 @@ progress:
 | Phase 04 P01 | 12min | 2 tasks | 11 files |
 | Phase 04 P02 | 3min | 2 tasks | 6 files |
 | Phase 04 P03 | 2min | 2 tasks | 2 files |
+| Phase 05-desktop-packaging P01 | 11min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,11 @@ progress:
 - (Plan 04-03) CI smoke job uses curl --no-buffer -N for SSE (streaming) rather than a ureq test binary — simpler, no new dep, exercises the real HTTP path. PID-file pattern (/tmp/*.pid) for cleanup across GitHub Actions steps that don't share env vars.
 - (Plan 04-03) 1.5s wait (not 1s) in CI smoke: absorbs server startup + inotify debounce (300ms) + DirtySet coalescing (300ms) + curl overhead. Still well within 5-minute job timeout.
 - (Plan 04-03) Linux-only smoke job: Windows ReadDirectoryChangesW testing requires Windows native runner; covered by ACPT-04-WATCHER.md manual checklist instead.
+- (Plan 05-01) WebviewUrl::External NOT tauri-plugin-localhost — plugin creates own tiny_http server, NOT a bridge to axum; Foliom's axum already serves SPA via rust-embed. Source-verified against docs.rs/tauri-plugin-localhost.
+- (Plan 05-01) std::thread::spawn for serve_run — serve::run() builds its own tokio::runtime via block_on; nesting inside tauri::async_runtime::spawn panics with "Cannot start a runtime from within a runtime". Always use std::thread::spawn.
+- (Plan 05-01) BOUND_PORT OnceLock<u16> set after bind_loopback() before rt.block_on() — Tauri setup hook polls with 20ms sleep, 5s timeout (250 iterations). Port typically available < 50ms from thread start.
+- (Plan 05-01) Dialog API: app.dialog().file().blocking_pick_folder() → Option<FilePath>; FilePath::into_path() → PathBuf. NOT the assumed blocking::FileDialogBuilder pattern.
+- (Plan 05-01) Store API: StoreExt trait; app.store('config.json') → Result<Arc<Store>>; store.get/set/save confirmed from tauri-plugin-store-2.4.3 source.
 
 ### Open Decisions (PRD §12)
 
@@ -170,6 +176,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Plan 04-03 complete — phase-4-watcher-smoke CI job (eee03fa) + ACPT-04-WATCHER.md (a8860c5). Phase 4 all 3 plans done. SNC-03/04/06 CI-closed.
-**Next action:** Phase 5 planning OR run /gsd-verify-work to sign off Phase 4.
-**Resumption hint:** Phase 4 complete. phase-4-watcher-smoke job runs on every push. Windows watcher manual acceptance pending (ACPT-04-WATCHER.md).
+**Last action:** Plan 05-01 complete — Tauri 2 shell scaffold (64ce7b0). src-tauri/ crate, BOUND_PORT OnceLock, WebviewUrl::External, folder picker, vault-root persistence. DSK-01 code complete.
+**Next action:** Run `sudo pacman -S webkit2gtk-4.1` then `cargo build -p foliom-tauri` to verify local build. Then 05-02 (release CI workflow) and 05-03 (footprint gate).
+**Resumption hint:** Phase 5 plan 1 done. webkit2gtk-4.1 must be installed for local Linux build. CI (ubuntu-latest) already has it. Code is correct and verified against plugin sources.
