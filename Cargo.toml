@@ -45,3 +45,13 @@ sysinfo = "=0.30.13"
 rand = "0.8"
 rand_chacha = "0.3"
 criterion = "0.5"
+# Plan 03-01 (SNC-02): atomic write + self-write hash set.
+#   - tempfile: NamedTempFile::persist gives atomic temp+rename on same-FS
+#     targets (Linux rename(2), Windows MoveFileExW). Already pinned at "3"
+#     as a dev-dep; Phase 3 promotes it to a runtime dep in `crates/core`.
+#   - dashmap 6.x: lock-free concurrent map used by SelfWriteSet so the
+#     mutation handler (writer) and Phase 4 watcher (reader) never contend
+#     on a single Mutex. 6.2.1 is the current max-stable (7.x is rc).
+#     Audited in 03-RESEARCH §2 + §Package Legitimacy.
+tempfile = "3"
+dashmap = "6"

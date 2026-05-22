@@ -6,8 +6,10 @@
 
 pub mod indexer;
 pub mod inventory;
+pub mod mutation;
 pub mod parser;
 pub mod path;
 pub mod query;
 pub mod scanner;
 pub mod storage;
+pub mod sync;
