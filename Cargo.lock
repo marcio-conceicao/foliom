@@ -726,6 +726,7 @@ dependencies = [
  "http-body-util",
  "mime_guess",
  "open",
+ "pulldown-cmark",
  "rand",
  "rand_chacha",
  "rusqlite",

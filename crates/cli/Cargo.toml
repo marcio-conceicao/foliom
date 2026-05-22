@@ -87,3 +87,6 @@ ureq = { version = "2", default-features = false, features = ["json"] }
 #   - hex: encode/decode blake3 hashes in test assertions (blake3 32-byte
 #     arrays ↔ 64-char hex strings used in the wire JSON).
 http-body-util = "0.1"
+# Plan 03-07: ACPT-05 portability test uses pulldown_cmark as a CommonMark
+# smoke-check on post-edit files. Same version as crates/core for deduplication.
+pulldown-cmark = { version = "0.13", default-features = false }
