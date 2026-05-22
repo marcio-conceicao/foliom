@@ -91,7 +91,7 @@
   3. A Syncthing-style bulk-change burst (hundreds of files rewritten in seconds) is processed without UI freeze, lost events, or runaway reindex; only touched files are reparsed.
   4. When an external edit and an in-flight foreground edit collide on the same block, the user sees a conflict UI with foreground-edit-wins as the default and a one-click "discard mine / reload" option.
 **Plans**: 3 plans
-- [ ] 04-01-PLAN.md — Backend watcher (notify-debouncer-full + DirtySet coalescing + SSE endpoint)
+- [x] 04-01-PLAN.md — Backend watcher (notify-debouncer-full + DirtySet coalescing + SSE endpoint)
 - [ ] 04-02-PLAN.md — Frontend SSE subscription + live reload + watcher-status pill + conflict banner wire
 - [ ] 04-03-PLAN.md — CI smoke job (phase-4-watcher-smoke) + ACPT-04-WATCHER.md manual checklist
 

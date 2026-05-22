@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-last_updated: "2026-05-22T07:36:00Z"
+status: verifying
+last_updated: "2026-05-22T12:44:51.999Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 22
-  completed_plans: 22
-  percent: 100
+  total_plans: 25
+  completed_plans: 23
+  percent: 92
 ---
 
 # Foliom — Project State
 
-**Last updated:** 2026-05-22 (Plan 03-07 executed — ACPT-05 portability acceptance test; Phase 3 complete, ready for /gsd-verify-work)
+**Last updated:** 2026-05-22 (Plan 04-01 executed — watcher backend + SSE endpoint; SNC-03 + SNC-04 fulfilled; 12min)
 
 ---
 
@@ -29,10 +29,11 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 3 — Outliner Editor (COMPLETE — all 7 plans landed: 03-01..03-07).
-- **Plan:** 03-07 complete (ACPT-05 portability acceptance test: 8-scenario scripted edit sequence, byte invariants, Foliom-metadata grep, ACPT-01 corpus replay — all green; CI job phase-3-acpt-05 added; ACPT-05-PORTABILITY.md manual checklist written).
-- **Status:** Phase 3 complete — ready for /gsd-verify-work
-- **Progress:** [██████████] 95%
+- **Milestone:** v1
+- **Phase:** 4 — Disk Sync (in progress — 1/3 plans: 04-01 complete).
+- **Plan:** 04-01 complete (notify-debouncer-full watcher + BroadcastStream SSE endpoint; SNC-03 + SNC-04 fulfilled; 4 integration tests green).
+- **Status:** Phase 4 in progress — 04-02 (frontend SSE) next
+- **Progress:** [██████████] 96%
 
 ---
 
@@ -59,6 +60,7 @@ progress:
 | Phase 03 P02 | 25min | 2 tasks | 6 files |
 | Phase 03 P04 | 11min | 2 tasks | 18 files |
 | Phase 03 P05 | 10min | 2 tasks | 14 files |
+| Phase 04 P01 | 12min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -135,6 +137,9 @@ progress:
 - (Plan 03-05) applyInverse wired for Indent/Outdent (PATCH /structure depth), Delete (POST /blocks snapshot), Move (PATCH /structure parent+ord). Merge/Split inverse deferred to plan 03-06. 409 restores op to treeOpLog + signals stale banner.
 - (Plan 03-05) BlockEditorCallbacks.onPaste added as optional — existing 03-04 mounts unaffected (onPaste undefined → paste extension omitted from CM6 extensions array).
 - (Plan 03-05) BulletPopover absolute-positioned (left: 100%; top: 0) with $effect document keydown/mousedown listeners. No floating-ui dep.
+- (Plan 04-01) notify-debouncer-full watcher: mpsc::Sender as DebounceEventHandler (blocking OS thread, NOT tokio task). Event loop: Ok(events) → filter .md → path-traversal guard → SelfWriteSet::take_if_present → local suppressed-hash DashMap (600ms TTL) for multi-event inotify dedup → DirtySet. Drain on 300ms coalescing tick. Flag::Rescan (macOS MustScanSubDirs / Linux IN_Q_OVERFLOW) → full reindex + IndexReset SSE. Err branch (Windows ReadDirectoryChangesW) → same + re-arm. FOLIOM_DEBOUNCE_MS env override for power users.
+- (Plan 04-01) Local suppressed-hash cache is required: SelfWriteSet.take_if_present is consume-once but inotify emits multiple events per atomic rename (MOVED_TO + MODIFY + CLOSE_WRITE). After take_if_present succeeds, hash is cached in local DashMap for 600ms to absorb follow-up events.
+- (Plan 04-01) GET /api/watch/events SSE endpoint uses BroadcastStream::new(rx).map(sse_event_from_result); Lagged → index_reset (T-04-03); 30s KeepAlive.text("ping") (D-40-02). AppState.watcher_tx: Arc<broadcast::Sender<WatcherEvent>>(64).
 
 ### Open Decisions (PRD §12)
 
@@ -156,6 +161,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Gap-closure commit 7e518b6 — wired EDT-06 (Backspace-merge) and EDT-07 (arrow-navigate) from stubs to real implementation; implemented applyInverse Merge/Split; 167 tests pass. VERIFICATION.md gaps updated to RESOLVED.
-**Next action:** Manual ACPT-05 verification (Obsidian + VS Code open-without-warnings). Phase 3 SC 2 now satisfied; SC 6 still requires human check. After human ACPT-05 sign-off, proceed to Phase 4 (file-system watcher + SSE live updates).
-**Resumption hint:** EDT-06 + EDT-07 + applyInverse Merge/Split all closed. Remaining gap: ACPT-05 manual Obsidian/VS Code verification (SC 6). No more code stubs in the keyboard model.
+**Last action:** Plan 04-01 complete — notify-debouncer-full watcher + BroadcastStream SSE endpoint. commits: bfbe823 (RED tests), c1239dc (feat watcher), 7a06a1d (feat SSE route). 4 watcher_integration tests green, full workspace suite green.
+**Next action:** Plan 04-02 — frontend SSE subscription, watcherStatus Svelte store, conflict banner wire, Sidebar pill indicator.
+**Resumption hint:** Backend GET /api/watch/events live at 127.0.0.1:7345/api/watch/events. WatcherEvent enum + AppState.watcher_tx in place. Frontend needs EventSource + stores/watcher.ts + watcher.ts composable.
