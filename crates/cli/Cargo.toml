@@ -17,6 +17,12 @@ path = "src/main.rs"
 name = "foliom-bench-gen"
 path = "src/bin/bench-gen.rs"
 
+# Plan 02-08: RSS probe for ACPT-03. Spawns `foliom serve`, warms one
+# page, reads RSS via sysinfo by pid, exits non-zero if RSS > 450 MB.
+[[bin]]
+name = "foliom-bench-rss"
+path = "src/bin/bench-rss.rs"
+
 # Plan 01-07 wires the real CLI (D-01 / D-02 / D-18 / D-19):
 #   - clap derive for the subcommand tree
 #   - anyhow for top-level error context (D-19)
@@ -53,9 +59,13 @@ rusqlite = { version = "0.39", features = ["bundled-full"] }
 # Plan 02-02: journal date formatting (LNK-05) + `now_local` for the
 # `/api/journals/today` redirect.
 time = { workspace = true }
-# Plan 02-08: bench-gen seeds ChaCha8Rng for deterministic corpus output.
+# Plan 02-08: bench-gen seeds ChaCha8Rng for deterministic corpus output;
+# bench-rss reads RSS via sysinfo (pinned `=0.30.13` at workspace level
+# for A4 unit-drift mitigation — process.memory() returns bytes only on
+# 0.30.x).
 rand = { workspace = true }
 rand_chacha = { workspace = true }
+sysinfo = { workspace = true }
 
 [dev-dependencies]
 assert_cmd = "2"

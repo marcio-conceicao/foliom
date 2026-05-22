@@ -19,13 +19,55 @@ jobs:
           # mangle the corpus.
           fetch-depth: 1
 
+      # ─── Node.js BEFORE Rust ────────────────────────────────────────
+      # Plan 02-07 embeds `frontend/dist/` into the release binary via
+      # rust-embed; the dist must exist before `cargo build --release`
+      # so the embed macro picks up real assets (an empty dist would
+      # ship a 404-only shell).
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend (produces frontend/dist/)
+        working-directory: frontend
+        run: npm run build
+
+      - name: Frontend unit tests (vitest)
+        working-directory: frontend
+        run: npm run test
+
+      # Plan 02-08 bundle-size gate. Budget = 600 KB uncompressed
+      # (~300 KB gzipped target per A3). Runs on every OS because
+      # bundle size is deterministic — first OS to exceed fails the
+      # whole matrix.
+      - name: Frontend bundle size gate (600 KB ceiling)
+        working-directory: frontend
+        shell: bash
+        run: |
+          SIZE=$(du -sk dist | cut -f1)
+          echo "frontend dist size: ${SIZE} KB (ceiling: 600 KB)"
+          if [ "$SIZE" -gt 600 ]; then
+            echo "::error::Bundle size ${SIZE} KB exceeds 600 KB budget"
+            exit 1
+          fi
+
+      # ─── Rust ───────────────────────────────────────────────────────
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}
 
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: phase1-${{ matrix.os }}
+          # Bumped from `phase1-…` to `phase2-…` because the Cargo.lock
+          # changed materially (axum, sysinfo, rand, criterion landed).
+          shared-key: phase2-${{ matrix.os }}
 
       - name: Install cargo-nextest
         uses: taiki-e/install-action@nextest
@@ -33,17 +75,13 @@ jobs:
       - name: cargo build
         run: cargo build --workspace --locked
 
-      - name: cargo nextest run (parser + scanner + roundtrip + storage + cli)
+      - name: cargo nextest run (parser + scanner + roundtrip + storage + cli + serve)
         run: cargo nextest run --workspace --no-fail-fast
 
-      # Plan 01-07 (IDX-08, ACPT-04): inventory smoke must enforce.
-      # The synthetic fixture is the CI target (no PII, committed);
-      # the real corpus `data-folder-sample/Logseq/` is gitignored and
-      # only used locally. `continue-on-error` removed — drift here
-      # fails the build.
-      - name: Build release foliom binary (for smoke test)
+      - name: Build release foliom binary
         run: cargo build --release --bin foliom --locked
 
+      # ─── Phase 1 inventory smoke (unchanged) ────────────────────────
       - name: Inventory smoke test (Unix)
         if: runner.os != 'Windows'
         run: |
@@ -61,3 +99,94 @@ jobs:
             Write-Error "inventory smoke: scannedFiles is 0"
             exit 1
           }
+
+      # ─── Phase 2 end-to-end smoke (plan 02-08) ──────────────────────
+      # Boots `foliom serve` in the background, hits /api/health and
+      # /api/pages, asserts both shapes, kills the child.
+      - name: E2E smoke (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          ./target/release/foliom serve crates/core/tests/fixtures/logseq-synthetic --port 7346 &
+          SERVE_PID=$!
+          # Give serve a moment to bind + run the initial reindex on the
+          # 12-file synthetic fixture (fast — <2 s).
+          sleep 3
+          curl -fsS http://127.0.0.1:7346/api/health | grep -q '"ok":true'
+          curl -fsS http://127.0.0.1:7346/api/pages | python3 -c "import sys,json; d=json.load(sys.stdin); assert isinstance(d,list) and len(d)>0, 'pages must be non-empty list'"
+          kill $SERVE_PID
+          wait $SERVE_PID 2>/dev/null || true
+
+      - name: E2E smoke (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # Pitfall 5 (02-RESEARCH): Invoke-RestMethod (not curl) on
+          # Windows runners. curl.exe is present but its TLS stack and
+          # argument parsing differ from the Unix build.
+          $proc = Start-Process -FilePath "./target/release/foliom.exe" `
+                                -ArgumentList "serve","crates/core/tests/fixtures/logseq-synthetic","--port","7346" `
+                                -PassThru
+          Start-Sleep -Seconds 3
+          try {
+            $health = Invoke-RestMethod -Uri "http://127.0.0.1:7346/api/health"
+            if (-not $health.ok) { Write-Error "health failed"; exit 1 }
+            $pages = Invoke-RestMethod -Uri "http://127.0.0.1:7346/api/pages"
+            if ($pages.Count -le 0) { Write-Error "pages empty"; exit 1 }
+          } finally {
+            Stop-Process -Id $proc.Id -Force
+          }
+
+  # ─── Phase 2 perf gates (plan 02-08, Linux-only) ──────────────────
+  # Runs only after the cross-platform test matrix is green so we don't
+  # burn bench minutes on PRs that already broke unit tests. ACPT-02
+  # ceiling = 3 s; ACPT-03 ceiling = 450 MB (target × 1.5 per D-35).
+  bench:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend (required by rust-embed at compile time)
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: phase2-bench
+
+      - name: Build release artifacts (foliom + bench tools)
+        run: cargo build --release --bin foliom --bin foliom-bench-gen --bin foliom-bench-rss --locked
+
+      - name: Generate synthetic 5k corpus (deterministic, seed=42)
+        run: ./target/release/foliom-bench-gen --out /tmp/synth-5k --count 5000 --seed 42
+
+      - name: Cold-start benchmark (ACPT-02)
+        run: cargo bench --bench cold_start -- --save-baseline phase2
+
+      - name: ACPT-02 gate (cold start < 3 s)
+        run: |
+          python3 scripts/bench_assert.py \
+            "target/criterion/cold_start_5k/db_open_reindex_full/new/estimates.json" \
+            3000000000
+
+      - name: ACPT-03 gate (idle RSS < 450 MB)
+        run: ./target/release/foliom-bench-rss /tmp/synth-5k
+
+      - name: Upload Criterion report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: criterion-report
+          path: target/criterion/cold_start_5k/
+          retention-days: 14
