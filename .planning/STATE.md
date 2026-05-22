@@ -156,6 +156,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Completed Phase 3 Plan 07 — ACPT-05 portability acceptance test (8-scenario scripted edit sequence over 16-file corpus: edit/insert/indent/outdent/delete/paste-tree/create-page/rename-page; byte invariants, Foliom-metadata grep, ACPT-01 replay — all green). CI job phase-3-acpt-05 added. ACPT-05-PORTABILITY.md manual checklist written for /gsd-verify-work. Phase 3 is now COMPLETE.
-**Next action:** Run /gsd-verify-work for Phase 3, then plan Phase 4 (file-system watcher + SSE live updates).
-**Resumption hint:** Phase 3 all 7 plans complete. Manual ACPT-05 verification pending (Obsidian + VS Code open-without-warnings). Known deferred items: applyInverse Merge/Split (console.debug stubs), arrow-key neighbor-focus between blocks, Backspace-merge non-empty block. These are tracked in deferred-items.md if created during Phase 3 execution.
+**Last action:** Gap-closure commit 7e518b6 — wired EDT-06 (Backspace-merge) and EDT-07 (arrow-navigate) from stubs to real implementation; implemented applyInverse Merge/Split; 167 tests pass. VERIFICATION.md gaps updated to RESOLVED.
+**Next action:** Manual ACPT-05 verification (Obsidian + VS Code open-without-warnings). Phase 3 SC 2 now satisfied; SC 6 still requires human check. After human ACPT-05 sign-off, proceed to Phase 4 (file-system watcher + SSE live updates).
+**Resumption hint:** EDT-06 + EDT-07 + applyInverse Merge/Split all closed. Remaining gap: ACPT-05 manual Obsidian/VS Code verification (SC 6). No more code stubs in the keyboard model.

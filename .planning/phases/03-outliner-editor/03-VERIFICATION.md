@@ -1,22 +1,29 @@
 ---
 phase: 03-outliner-editor
 verified: 2026-05-22T08:00:00Z
-status: gaps_found
-score: 4/6 success criteria verified
+gap_closure: 2026-05-22
+status: gaps_closed
+score: 5/6 success criteria verified (SC 2 now SATISFIED; SC 6 still requires human ACPT-05 check)
 overrides_applied: 0
 gaps:
   - truth: "Keyboard model works end-to-end: Backspace-at-start merges with previous block; arrows at edges navigate-and-edit (ROADMAP SC 2 / EDT-06 + EDT-07)"
-    status: failed
-    reason: "EDT-06: Backspace at start of non-empty block pushes a Merge TreeOp but returns false (CM6 deletes the character at position 0 — no merge with previous block occurs, no server call). EDT-07: ArrowUp/Down at edge unmounts the current editor but does NOT mount the adjacent block (comment: 'Navigation signal to PageView — placeholder; full impl in plan 03-05' but never wired in any plan)."
+    status: resolved
+    resolved_by: "commit 7e518b6 (fix(03-gap): wire EDT-06 Backspace-merge + EDT-07 arrow-navigate + applyInverse)"
+    resolution:
+      - "EDT-06: Block.svelte Backspace-at-start now calls onMerge(id, rawToMerge, fileHash) after unmounting; PageView.handleMerge does DELETE current + PUT prev (concatenated raw) + pushes Merge TreeOp with prevOriginalRaw snapshot + sets currentlyEditing to prev block."
+      - "EDT-07: Block.svelte ArrowUp/Down at edge calls onNavigate('up'|'down', id) after saveAndUnmount; PageView.handleNavigate flattens block tree and sets currentlyEditing to adjacent block id."
+      - "applyInverse Merge: PUT prev block to prevOriginalRaw + POST to recreate deleted block. applyInverse Split: DELETE new block. Both replace the console.debug stubs."
     artifacts:
       - path: "frontend/src/lib/components/Block.svelte"
-        issue: "Line 188-197: EDT-06 stub — returns false instead of triggering merge. Line 203-221: EDT-07 stub — unmounts editor but no adjacent block mount."
+        change: "onMerge + onNavigate props added; Backspace stub replaced; ArrowUp/Down stubs replaced; both forwarded to recursive child Self renders."
+      - path: "frontend/src/lib/pages/PageView.svelte"
+        change: "handleMerge + handleNavigate + flattenBlocks implemented; wired to <Block> onMerge/onNavigate."
       - path: "frontend/src/lib/editor/history-routing.ts"
-        issue: "Line 112-119: applyInverse for Merge/Split is console.debug stub — Merge inverse never applied to server."
-    missing:
-      - "EDT-06: Wire Backspace-at-start to call DELETE /api/blocks on the current block and PUT /api/blocks/:prevId with concatenated raw content (or introduce a PATCH /api/blocks/:id/merge endpoint)."
-      - "EDT-07: Add onNavigate callback to Block.svelte, handle in PageView.svelte to focus (mount CM6 on) the block above/below the current one."
-      - "applyInverse Merge/Split cases need real server calls, not console.debug stubs."
+        change: "applyInverse Merge/Split cases implemented with real fetch calls."
+      - path: "frontend/src/lib/stores/treeOpLog.ts"
+        change: "Merge TreeOp gains prevOriginalRaw field for undo snapshot."
+      - path: "frontend/src/lib/components/__tests__/block-editing.test.ts"
+        change: "4 new tests for onMerge/onNavigate callback wiring."
 
 human_verification:
   - test: "Run `ACPT05_KEEP_TEMPDIR=1 cargo test -p foliom-cli --test portability_acpt_05 -- --nocapture` and then open /tmp/foliom-acpt05/ as an Obsidian vault (File -> Open Folder as Vault)."
