@@ -191,3 +191,40 @@ jobs:
           name: criterion-report
           path: target/criterion/cold_start_5k/
           retention-days: 14
+
+  # ─── Phase 3 ACPT-05 portability gate (plan 03-07, Linux-only) ────────
+  # Runs only after the cross-platform test matrix is green.
+  # Drives a scripted edit sequence through the full mutation API, then
+  # asserts byte invariants (no CRLF, no BOM, valid UTF-8), Foliom-metadata
+  # grep (zero id:: / (( / <!-- foliom injections), and ACPT-01 corpus
+  # replay (segment→slice-concat→byte-equal).
+  #
+  # The Obsidian / VS Code manual verification is NOT part of this job; see
+  # .planning/phases/03-outliner-editor/ACPT-05-PORTABILITY.md.
+  phase-3-acpt-05:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend (required by rust-embed at compile time)
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: phase3-acpt05
+
+      - name: ACPT-05 automated portability test
+        run: cargo test -p foliom-cli --test portability_acpt_05 -- --nocapture
