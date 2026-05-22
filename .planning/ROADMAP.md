@@ -10,7 +10,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Headless Indexing Core** — Round-trip CI gate + inventory script + scanner/parser/indexer/CLI; no UI.
+- [x] **Phase 1: Headless Indexing Core** — Round-trip CI gate + inventory script + scanner/parser/indexer/CLI; no UI. (completed 2026-05-22)
 - [ ] **Phase 2: Read-Only Web UI** — Svelte frontend over axum HTTP serving rendered pages, navigation, backlinks, search.
 - [ ] **Phase 3: Outliner Editor** — CodeMirror 6 single-block editor with byte-splice writeback, undo/redo, rename-with-backlinks.
 - [ ] **Phase 4: Disk Sync** — Filesystem watcher with self-write suppression, SSE live updates, conflict UI.
@@ -37,7 +37,7 @@
 - [x] 01-04-PLAN.md — Storage schema (migration v1), DB-location resolver, Db wrapper with PRAGMAs
 - [x] 01-05-PLAN.md — Scanner with walkdir + ignore list + minimal config.edn :hidden reader
 - [x] 01-06-PLAN.md — Indexer orchestrator (incremental + full reindex, per-file transactions)
-- [ ] 01-07-PLAN.md — CLI subcommands (index/reindex/search/dump-tree/inventory) + pinned inventory regression + green CI matrix
+- [x] 01-07-PLAN.md — CLI subcommands (index/reindex/search/dump-tree/inventory) + pinned inventory regression + green CI matrix
 
 ### Phase 2: Read-Only Web UI
 **Goal**: A user can point Foliom at their Logseq folder, open `localhost` in a browser, navigate the graph by `[[links]]`/`#tags`, see backlinks, browse journals, and run full-text search — all read-only, all lazy-loaded, hitting the 5k-note performance budget.
@@ -94,7 +94,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Headless Indexing Core | 4/7 | In Progress|  |
+| 1. Headless Indexing Core | 7/7 | Complete   | 2026-05-22 |
 | 2. Read-Only Web UI | 0/0 | Not started | - |
 | 3. Outliner Editor | 0/0 | Not started | - |
 | 4. Disk Sync | 0/0 | Not started | - |
