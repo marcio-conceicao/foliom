@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 3 plan 03-03 executed — mutation REST API complete (PUT/POST/PATCH/DELETE /api/blocks); awaiting plan 03-04 (frontend editor)
-last_updated: "2026-05-22T06:36:58.356Z"
+status: completed
+last_updated: "2026-05-22T06:52:49.615Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 22
-  completed_plans: 18
-  percent: 82
+  completed_plans: 19
+  percent: 86
 ---
 
 # Foliom — Project State
@@ -32,7 +32,7 @@ progress:
 - **Phase:** 3 — Outliner Editor (in progress, 3 of 7 plans landed: 03-01, 03-02, 03-03).
 - **Plan:** 03-03 complete (mutation REST API: PUT/POST/PATCH/DELETE /api/blocks with prev_hash conflict detection, atomic_write_md, self_writes registration, ref re-extraction; AppState.self_writes added; PageDetail.fileHash + .id added; 12 integration tests green; ACPT-01 green).
 - **Status:** Phase 3 plan 03-03 executed — mutation REST API complete (PUT/POST/PATCH/DELETE /api/blocks); awaiting plan 03-04 (frontend editor)
-- **Progress:** [████████░░] 82%
+- **Progress:** [█████████░] 86%
 
 ---
 
@@ -57,6 +57,7 @@ progress:
 | Phase 02 P08 | 35m | 2 tasks | 12 files |
 | Phase 03 P01 | 35min | 2 tasks | 9 files |
 | Phase 03 P02 | 25min | 2 tasks | 6 files |
+| Phase 03 P04 | 11min | 2 tasks | 18 files |
 
 ## Accumulated Context
 

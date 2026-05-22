@@ -39,19 +39,19 @@
 
 ### Editor — Outliner (EDT)
 
-- [ ] **EDT-01**: At any moment **at most one block is in edit**. The focused block shows raw markdown (CodeMirror 6 textarea); all other blocks render read-only.
+- [x] **EDT-01**: At any moment **at most one block is in edit**. The focused block shows raw markdown (CodeMirror 6 textarea); all other blocks render read-only.
 - [x] **EDT-02**: Transition render → edit on focus/click; edit → render on `blur` or `Enter`, reparsing only that block's raw text.
 - [x] **EDT-03**: The raw text of a block is the only source of truth; HTML is a discardable projection. Foliom never reconstructs markdown from HTML.
-- [ ] **EDT-04**: `Enter` creates a sibling block; `Shift+Enter` inserts a newline within the same block (code fence stays multi-line).
-- [ ] **EDT-05**: `Tab` / `Shift+Tab` indent/outdent the current block (hierarchy mutation).
-- [ ] **EDT-06**: `Backspace` at the start of a block merges with the previous block.
-- [ ] **EDT-07**: `Arrow ↑` / `Arrow ↓` at block edges navigate to the neighboring block, entering edit mode.
+- [x] **EDT-04**: `Enter` creates a sibling block; `Shift+Enter` inserts a newline within the same block (code fence stays multi-line).
+- [x] **EDT-05**: `Tab` / `Shift+Tab` indent/outdent the current block (hierarchy mutation).
+- [x] **EDT-06**: `Backspace` at the start of a block merges with the previous block.
+- [x] **EDT-07**: `Arrow ↑` / `Arrow ↓` at block edges navigate to the neighboring block, entering edit mode.
 - [x] **EDT-08**: Block folding (collapse children) is supported per-block; UI-only by default, but persists to the `collapsed::` block property when the user explicitly toggles persistence.
 - [ ] **EDT-09**: Autocomplete for `[[page]]` and `#tag` triggers on `[[` and `#` respectively, suggesting from the indexed page/tag set.
-- [ ] **EDT-10**: Undo/redo works at the block-edit granularity (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z). In-memory transaction log is acceptable for v1.
+- [x] **EDT-10**: Undo/redo works at the block-edit granularity (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z). In-memory transaction log is acceptable for v1.
 - [ ] **EDT-11**: User can copy/cut/paste blocks preserving their hierarchy (multi-line clipboard format with bullet indentation).
 - [ ] **EDT-12**: A block context menu exposes the common operations (cut, copy, duplicate, fold, zoom, copy as markdown).
-- [ ] **EDT-13**: IME composition is preserved on every save path (`view.composing` guard), so dead-key sequences like Pt-BR `~` + `a` → `ã` and CJK IMEs work correctly.
+- [x] **EDT-13**: IME composition is preserved on every save path (`view.composing` guard), so dead-key sequences like Pt-BR `~` + `a` → `ã` and CJK IMEs work correctly.
 
 ### Persistence & Sync (SNC)
 
