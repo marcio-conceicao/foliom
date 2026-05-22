@@ -1,0 +1,13 @@
+# PLACEHOLDER — RED phase: intentionally incomplete, will fail YAML gate
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
