@@ -28,6 +28,54 @@ export interface PageDetail {
   isJournal: boolean;
   formattedTitle: string | null;
   blocks: Block[];
+  fileHash?: string; // hex BLAKE3 — present for resolved pages (plan 03-03)
+  id?: number;       // page id — present for resolved pages (plan 03-03)
+}
+
+// --- Mutation API types (plan 03-03 wire contract) ---
+
+/**
+ * Response from PUT/POST/PATCH/DELETE /api/blocks.
+ * The frontend replaces the local pageDetail.blocks subtree from blockSubtree
+ * and updates pageDetail.fileHash — no follow-up GET needed.
+ */
+export interface MutationResponse {
+  blockSubtree: Block[];
+  fileHash: string;
+  dirtyBlockIds: number[];
+}
+
+/** Response from POST /api/blocks (includes the new block's id). */
+export interface CreateBlockResponse extends MutationResponse {
+  id: number;
+}
+
+/**
+ * Returned when the server responds with 409 Conflict.
+ * The client should update its fileHash and surface a Reload banner.
+ */
+export interface StaleConflict {
+  stale: true;
+  currentFileHash: string;
+}
+
+/** Request body for PATCH /api/blocks/:id/structure */
+export interface StructureReq {
+  op: 'indent' | 'outdent' | 'move';
+  prevHash: string;
+  parentId?: number;
+  ord?: number;
+  depth?: number;
+}
+
+/** Request body for POST /api/blocks */
+export interface NewBlockReq {
+  pageId: number;
+  parentId: number | null;
+  ord: number;
+  depth: number;
+  raw: string;
+  prevHash: string;
 }
 
 export interface Backlink {
@@ -90,6 +138,106 @@ export async function fetchJournalsRange(
 ): Promise<JournalEntry[]> {
   const params = new URLSearchParams({ from, to });
   return getJson<JournalEntry[]>(`/api/journals?${params.toString()}`);
+}
+
+// --- Mutation wrappers (plan 03-04) ---
+// Each wrapper handles the 409 Stale response by returning a StaleConflict
+// object instead of throwing, so callers can surface the Reload banner.
+// All other non-ok responses throw an Error.
+
+/**
+ * PUT /api/blocks/:id — update block raw text.
+ * Returns MutationResponse on success, StaleConflict on 409.
+ */
+export async function putBlock(
+  id: number,
+  raw: string,
+  prevHash: string,
+): Promise<MutationResponse | StaleConflict> {
+  const res = await fetch(`/api/blocks/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ raw, prevHash }),
+  });
+  if (res.status === 409) {
+    const body = (await res.json()) as { error: string; currentFileHash: string };
+    return { stale: true, currentFileHash: body.currentFileHash };
+  }
+  if (!res.ok) {
+    throw new Error(`Foliom API PUT /api/blocks/${id} → ${res.status} ${res.statusText}`);
+  }
+  return (await res.json()) as MutationResponse;
+}
+
+/**
+ * POST /api/blocks — create a new block.
+ * Returns CreateBlockResponse on success, StaleConflict on 409.
+ */
+export async function postBlock(
+  req: NewBlockReq,
+): Promise<CreateBlockResponse | StaleConflict> {
+  const res = await fetch('/api/blocks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(req),
+  });
+  if (res.status === 409) {
+    const body = (await res.json()) as { error: string; currentFileHash: string };
+    return { stale: true, currentFileHash: body.currentFileHash };
+  }
+  if (!res.ok) {
+    throw new Error(`Foliom API POST /api/blocks → ${res.status} ${res.statusText}`);
+  }
+  return (await res.json()) as CreateBlockResponse;
+}
+
+/**
+ * PATCH /api/blocks/:id/structure — indent, outdent, or move a block.
+ * Returns MutationResponse on success, StaleConflict on 409.
+ */
+export async function patchBlockStructure(
+  id: number,
+  req: StructureReq,
+): Promise<MutationResponse | StaleConflict> {
+  const res = await fetch(`/api/blocks/${id}/structure`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(req),
+  });
+  if (res.status === 409) {
+    const body = (await res.json()) as { error: string; currentFileHash: string };
+    return { stale: true, currentFileHash: body.currentFileHash };
+  }
+  if (!res.ok) {
+    throw new Error(`Foliom API PATCH /api/blocks/${id}/structure → ${res.status} ${res.statusText}`);
+  }
+  return (await res.json()) as MutationResponse;
+}
+
+/**
+ * DELETE /api/blocks/:id — delete a block (EDT-06 empty-block, D-30-08).
+ * Returns MutationResponse on success, StaleConflict on 409.
+ */
+export async function deleteBlock(
+  id: number,
+  prevHash: string,
+): Promise<MutationResponse | StaleConflict> {
+  const res = await fetch(`/api/blocks/${id}?prevHash=${encodeURIComponent(prevHash)}`, {
+    method: 'DELETE',
+    headers: { Accept: 'application/json' },
+  });
+  if (res.status === 409) {
+    const body = (await res.json()) as { error: string; currentFileHash: string };
+    return { stale: true, currentFileHash: body.currentFileHash };
+  }
+  if (!res.ok) {
+    throw new Error(`Foliom API DELETE /api/blocks/${id} → ${res.status} ${res.statusText}`);
+  }
+  // DELETE may return 204 No Content or 200 MutationResponse
+  if (res.status === 204) {
+    return { blockSubtree: [], fileHash: '', dirtyBlockIds: [] };
+  }
+  return (await res.json()) as MutationResponse;
 }
 
 // Used by RedirectToday: the server returns a 302 to `/api/pages/{YYYY_MM_DD}`.

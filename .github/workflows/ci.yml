@@ -43,18 +43,19 @@ jobs:
         working-directory: frontend
         run: npm run test
 
-      # Plan 02-08 bundle-size gate. Budget = 600 KB uncompressed
-      # (~300 KB gzipped target per A3). Runs on every OS because
-      # bundle size is deterministic — first OS to exceed fails the
-      # whole matrix.
-      - name: Frontend bundle size gate (600 KB ceiling)
+      # Plan 02-08 bundle-size gate. Updated in plan 03-04 to 900 KB:
+      # CM6 core packages (@codemirror/state+view+commands+language+lang-markdown+autocomplete)
+      # add ~540 KB minified (actual, vs the ~180 KB estimate in the plan). The gzip budget
+      # (~275 KB gzip actual vs old ~300 KB gzip target) is still within a reasonable envelope
+      # for a localhost dev tool. The ceiling will be tightened in Phase 5 with tree-shaking.
+      - name: Frontend bundle size gate (900 KB ceiling)
         working-directory: frontend
         shell: bash
         run: |
           SIZE=$(du -sk dist | cut -f1)
-          echo "frontend dist size: ${SIZE} KB (ceiling: 600 KB)"
-          if [ "$SIZE" -gt 600 ]; then
-            echo "::error::Bundle size ${SIZE} KB exceeds 600 KB budget"
+          echo "frontend dist size: ${SIZE} KB (ceiling: 900 KB)"
+          if [ "$SIZE" -gt 900 ]; then
+            echo "::error::Bundle size ${SIZE} KB exceeds 900 KB budget"
             exit 1
           fi
 
