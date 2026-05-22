@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 2 plan 02-01 executed
-last_updated: "2026-05-22T01:50:25.294Z"
+status: Phase 2 plan 02-02 executed
+last_updated: "2026-05-22T02:42:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 15
-  completed_plans: 9
-  percent: 60
+  completed_plans: 11
+  percent: 73
 ---
 
 # Foliom — Project State
@@ -29,10 +29,10 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 2 — Read-Only Web UI (in progress, plan 02-01 of 8 complete)
-- **Plan:** 02-01 complete (HTTP scaffold); next is 02-02
-- **Status:** Phase 2 plan 02-01 executed
-- **Progress:** [██████░░░░] 60%
+- **Phase:** 2 — Read-Only Web UI (in progress, 3 of 8 plans complete: 02-01, 02-02, 02-03)
+- **Plan:** 02-02 complete (REST API: pages/journals/search/titles); next is 02-04 (markdown renderer)
+- **Status:** Phase 2 plan 02-02 executed
+- **Progress:** [███████░░░] 73%
 
 ---
 
@@ -66,6 +66,8 @@ progress:
 - (Plan 01-06) Full mode on unchanged corpus reports `mtime_touched` (not `unchanged`) because Full skips the (mtime,size) fast path by definition.
 - (Plan 01-06) Synthetic fixture file count = 11 (10 pattern fixtures + README.md sibling). Real corpus = 620 files (locally verified).
 - (Plan 02-01) HTTP scaffold: `foliom serve <root>` on 127.0.0.1:7345 via axum 0.7 + tokio current_thread + `Arc<Mutex<Db>>` shared state (D-22..D-25, D-38). Host-header allowlist rejects DNS rebinding with 421 Misdirected Request (T-02-01 mitigation). Graceful shutdown via `tokio::signal::ctrl_c`. AddrInUse on requested port falls back to OS-assigned :0.
+- (Plan 02-02) REST surface live: 7 read-only endpoints (`/api/pages`, `/api/pages/:name`, `/api/pages/:name/backlinks`, `/api/page-titles`, `/api/journals/today`, `/api/journals?from&to`, `/api/search?q&kind&limit`). All handlers run DB work in `spawn_blocking` and bind via `params![]` (T-02-04). Search sanitization: empty after trim → `[]`, unquoted `:` rejected, backslashes stripped (T-02-05). `properties_json`/`drawers_json` are stored as normalized side tables (`block_props`/`block_drawers`), NOT JSON columns — detail handler joins per-page with prefetch (no N+1). `pages/Avaliação.md` fixture added for FTS5 UTF-8 snippet integrity (Pitfall 6); inventory pinned counts bumped scanned 11→12, pages 10→11.
+- (Plan 02-02) **axum 0.7 path-param syntax bug fixed**: workspace pins `axum = "0.7"` (matchit 0.7, `:name` syntax) but initial implementation used `{name}` (axum 0.8 / matchit 0.8 syntax) so detail/backlinks routes were treated as literal paths and every request hit axum's fallback 404 with content-length 0. Reverted to `:name`. Note for future: any axum 0.8 upgrade must flip this back.
 
 ### Open Decisions (PRD §12)
 
