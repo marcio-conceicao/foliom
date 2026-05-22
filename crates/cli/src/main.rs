@@ -51,9 +51,12 @@ fn main() -> Result<()> {
     // RUST_LOG-style filtering with a sensible default (D-18).
     let filter =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+    // Logs go to stderr so stdout stays a clean JSON stream when --json
+    // is set (the JSON contract is the load-bearing interop surface).
     tracing_subscriber::fmt()
         .with_env_filter(filter)
         .with_target(false)
+        .with_writer(std::io::stderr)
         .init();
 
     let cli = Cli::parse();
