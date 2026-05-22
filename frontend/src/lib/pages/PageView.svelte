@@ -4,6 +4,7 @@
   import { currentPage } from '../stores';
   import Block from '../components/Block.svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import BacklinksPanel from '../components/BacklinksPanel.svelte';
   import { applyZoomFromHash } from '../zoom';
 
   interface Params { name: string }
@@ -44,6 +45,7 @@
     {#each detail.blocks as block (block.id)}
       <Block {...block} />
     {/each}
+    <BacklinksPanel name={detail.name} />
   {/if}
 </section>
 
