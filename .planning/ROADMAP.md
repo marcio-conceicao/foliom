@@ -103,7 +103,10 @@
   1. A Tauri 2 desktop binary launches the same Svelte UI against the in-process axum server via `tauri-plugin-localhost`, with a folder picker for selecting the notes root; identical code path between web dev and desktop ship.
   2. macOS and Windows installers are code-signed; macOS is notarized; CI produces release artifacts for both platforms.
   3. Footprint CI gate passes: installer < 30 MB, idle RSS < 150 MB on the 5,000-note corpus — materially smaller than an Electron-equivalent shell.
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 05-01-PLAN.md — src-tauri/ Tauri shell: BOUND_PORT, WebviewUrl::External, folder picker, config store
+- [ ] 05-02-PLAN.md — Release CI: macOS universal + Windows x64, conditional signing + notarization, GitHub Release
+- [ ] 05-03-PLAN.md — Footprint gate: installer < 30 MB + idle RSS < 150 MB CI assertions
 **UI hint**: yes
 
 ---
@@ -116,7 +119,7 @@
 | 2. Read-Only Web UI | 0/8 | Not started | - |
 | 3. Outliner Editor | 4/7 | In Progress|  |
 | 4. Disk Sync | 3/3 | Complete   | 2026-05-22 |
-| 5. Desktop Packaging | 0/0 | Not started | - |
+| 5. Desktop Packaging | 0/3 | Not started | - |
 
 ---
 

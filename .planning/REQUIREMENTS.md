@@ -85,7 +85,7 @@
 
 ### Desktop Packaging (DSK)
 
-- [ ] **DSK-01**: Foliom ships a Tauri 2 desktop binary that wraps the same Svelte UI consuming the in-process axum server via `tauri-plugin-localhost`.
+- [ ] **DSK-01**: Foliom ships a Tauri 2 desktop binary that wraps the same Svelte UI consuming the in-process axum server via `WebviewUrl::External` — the WebView loads `http://127.0.0.1:<port>/` directly; no `tauri-plugin-localhost` crate required (that plugin runs its own `tiny_http` server, not a bridge to axum).
 - [ ] **DSK-02**: macOS and Windows installers are code-signed; macOS is notarized.
 - [ ] **DSK-03**: Desktop binary RSS + disk footprint is materially smaller than an Electron equivalent (target: < 30 MB installer, < 150 MB RSS at idle).
 
@@ -171,9 +171,9 @@
 | SNC-03 | Phase 4 (plans 04-01, 04-03) | Implemented (04-01) |
 | SNC-04 | Phase 4 (plan 04-01) | Implemented (04-01) |
 | SNC-06 | Phase 4 (plans 04-02, 04-03) | Planned |
-| DSK-01 | Phase 5 | Pending |
-| DSK-02 | Phase 5 | Pending |
-| DSK-03 | Phase 5 | Pending |
+| DSK-01 | Phase 5 (plan 05-01) | Planned |
+| DSK-02 | Phase 5 (plan 05-02) | Planned |
+| DSK-03 | Phase 5 (plan 05-03) | Planned |
 
 **Coverage:** 56/56 v1 requirements mapped to exactly one phase. No orphans, no duplicates.
 
