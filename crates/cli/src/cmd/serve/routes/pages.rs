@@ -11,7 +11,7 @@
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::Json;
-use rusqlite::params;
+use rusqlite::{Connection, params};
 
 use crate::cmd::serve::dto::{Backlink, Block, DrawerRef, PageDetail, PageSummary};
 use crate::cmd::serve::format::{format_journal_title, parse_journal_name};
@@ -68,14 +68,18 @@ pub async fn detail(
         let conn = guard.conn();
 
         // Resolve the page row first. Missing → 404 from the outer layer.
-        let page_row: Option<(i64, String, String)> = conn
+        // Also join files.hash so mutation clients can use it as prev_hash.
+        let page_row: Option<(i64, String, String, Option<Vec<u8>>)> = conn
             .query_row(
-                "SELECT id, kind, name FROM pages WHERE name = ?1 COLLATE NOCASE",
+                "SELECT p.id, p.kind, p.name, f.hash \
+                 FROM pages p \
+                 LEFT JOIN files f ON f.id = p.file_id \
+                 WHERE p.name = ?1 COLLATE NOCASE",
                 params![&name],
-                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
             )
             .ok();
-        let Some((page_id, kind, canonical_name)) = page_row else {
+        let Some((page_id, kind, canonical_name, file_hash_bytes)) = page_row else {
             return Ok(None);
         };
         let is_journal = kind == "journal";
@@ -84,6 +88,11 @@ pub async fn detail(
         } else {
             None
         };
+        // Hex-encode the 32-byte BLAKE3 hash for the wire response. None for
+        // unresolved pages (file_id IS NULL → no backing file).
+        let file_hash: Option<String> = file_hash_bytes
+            .filter(|h| h.len() == 32)
+            .map(hex::encode);
 
         // Pull all blocks for this page in `ord` order.
         let mut block_stmt = conn.prepare(
@@ -146,6 +155,8 @@ pub async fn detail(
             is_journal,
             formatted_title,
             blocks,
+            file_hash,
+            id: page_id,
         }))
     })
     .await
@@ -159,6 +170,65 @@ pub async fn detail(
     })?;
 
     detail.map(Json).ok_or(StatusCode::NOT_FOUND)
+}
+
+/// Build the full block tree for `page_id` from the database.
+///
+/// Used by both the read-only `detail` handler and the mutation handlers in
+/// `routes/blocks.rs` to return the updated subtree after each write.
+pub(crate) fn build_page_block_tree(
+    conn: &Connection,
+    page_id: i64,
+) -> rusqlite::Result<Vec<Block>> {
+    let mut block_stmt = conn.prepare(
+        "SELECT id, ord, depth, raw FROM blocks WHERE page_id = ?1 ORDER BY ord",
+    )?;
+    let raw_blocks: Vec<(i64, i64, i32, String)> = block_stmt
+        .query_map(params![page_id], |r| {
+            Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?))
+        })?
+        .collect::<rusqlite::Result<_>>()?;
+
+    let mut props_stmt = conn.prepare(
+        "SELECT bp.block_id, bp.key, bp.value \
+         FROM block_props bp \
+         JOIN blocks b ON b.id = bp.block_id \
+         WHERE b.page_id = ?1",
+    )?;
+    let mut props_map: std::collections::HashMap<i64, Vec<[String; 2]>> =
+        std::collections::HashMap::new();
+    for row in props_stmt.query_map(params![page_id], |r| {
+        Ok((r.get::<_, i64>(0)?, r.get::<_, String>(1)?, r.get::<_, String>(2)?))
+    })? {
+        let (bid, k, v) = row?;
+        props_map.entry(bid).or_default().push([k, v]);
+    }
+
+    let mut draw_stmt = conn.prepare(
+        "SELECT bd.block_id, bd.name, bd.byte_offset, bd.byte_length \
+         FROM block_drawers bd \
+         JOIN blocks b ON b.id = bd.block_id \
+         WHERE b.page_id = ?1",
+    )?;
+    let mut draw_map: std::collections::HashMap<i64, Vec<DrawerRef>> =
+        std::collections::HashMap::new();
+    for row in draw_stmt.query_map(params![page_id], |r| {
+        Ok((
+            r.get::<_, i64>(0)?,
+            r.get::<_, String>(1)?,
+            r.get::<_, i64>(2)?,
+            r.get::<_, i64>(3)?,
+        ))
+    })? {
+        let (bid, name, off, len) = row?;
+        draw_map.entry(bid).or_default().push(DrawerRef {
+            name,
+            byte_offset: off,
+            byte_length: len,
+        });
+    }
+
+    Ok(assemble_tree(raw_blocks, &mut props_map, &mut draw_map))
 }
 
 /// Walk the flat list and produce the nested `Vec<Block>` shape.

@@ -6,6 +6,10 @@ rust-version.workspace = true
 license.workspace = true
 publish.workspace = true
 
+[lib]
+name = "foliom_cli"
+path = "src/lib.rs"
+
 [[bin]]
 name = "foliom"
 path = "src/main.rs"
@@ -56,6 +60,11 @@ mime_guess = { workspace = true }
 # Pinned to the same version as crates/core to keep a single `libsqlite3-sys`
 # native link in the workspace (otherwise cargo fails the link check).
 rusqlite = { version = "0.39", features = ["bundled-full"] }
+# Plan 03-03: BLAKE3 hash ↔ hex-string encoding for mutation API wire format.
+hex = "0.4"
+# Plan 03-03: blake3 for new-block hash in POST /api/blocks. Same version as
+# crates/core so cargo deduplicates the native link.
+blake3 = "1.5"
 # Plan 02-02: journal date formatting (LNK-05) + `now_local` for the
 # `/api/journals/today` redirect.
 time = { workspace = true }
@@ -72,3 +81,9 @@ assert_cmd = "2"
 tempfile = "3"
 serde_json = "1"
 ureq = { version = "2", default-features = false, features = ["json"] }
+# Plan 03-03: in-process axum router tests for mutation endpoints.
+#   - http-body-util: BodyExt::collect needed to drain axum response bodies
+#     in tower::ServiceExt::oneshot tests.
+#   - hex: encode/decode blake3 hashes in test assertions (blake3 32-byte
+#     arrays ↔ 64-char hex strings used in the wire JSON).
+http-body-util = "0.1"

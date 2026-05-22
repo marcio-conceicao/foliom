@@ -294,6 +294,21 @@ fn insert_all_blocks(
     Ok(())
 }
 
+/// Public alias for use by plan 03-03 mutation handlers.
+///
+/// Extracts `[[link]]`, `#tag`, and `#[[composite tag]]` from `raw`, resolves
+/// (or creates) the target page rows, and inserts `refs` rows.
+///
+/// Callers must have already `DELETE FROM refs WHERE source_block = block_id`
+/// before calling this so re-indexing is idempotent.
+pub fn insert_refs_for_block_tx(
+    tx: &Transaction<'_>,
+    block_id: i64,
+    raw: &str,
+) -> Result<(), IndexerError> {
+    insert_refs_for_block(tx, block_id, raw)
+}
+
 fn insert_refs_for_block(
     tx: &Transaction<'_>,
     block_id: i64,

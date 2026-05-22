@@ -1,15 +1,16 @@
 //! HTTP routing. Plan 02-01 wired `/api/health`; plan 02-02 adds the seven
 //! read-only endpoints from D-24 (the SearchKind variants count as one
 //! route with query-driven routing). Subsequent plans (02-03..02-08) add
-//! the embedded SPA on `/`.
+//! the embedded SPA on `/`. Plan 03-03 adds mutation endpoints.
 
+pub mod blocks;
 pub mod health;
 pub mod journals;
 pub mod pages;
 pub mod search;
 pub mod titles;
 
-use axum::{Router, middleware as axum_middleware, routing::get};
+use axum::{Router, middleware as axum_middleware, routing::{delete, get, patch, post, put}};
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 
 use crate::cmd::serve::embed;
@@ -35,6 +36,11 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/journals", get(journals::range))
         // Search (plan 02-02).
         .route("/api/search", get(search::search))
+        // Plan 03-03: mutation endpoints.
+        .route("/api/blocks", post(blocks::post_block))
+        .route("/api/blocks/:id", put(blocks::put_block))
+        .route("/api/blocks/:id/structure", patch(blocks::patch_block_structure))
+        .route("/api/blocks/:id", delete(blocks::delete_block))
         // Plan 02-07: SPA static-asset fallback. Misses on `/api/*` cannot
         // reach this — `Router::fallback` runs only when no `.route(...)`
         // matches. In debug: 307 to Vite (`localhost:5173`). In release:

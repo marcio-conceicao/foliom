@@ -29,6 +29,7 @@ use anyhow::{Context, Result};
 use clap::Args;
 use foliom_core::indexer::{ReindexMode, reindex};
 use foliom_core::storage::Db;
+use foliom_core::sync::SelfWriteSet;
 use tokio::net::TcpListener;
 
 use crate::cmd::serve::routes::build_router;
@@ -85,6 +86,7 @@ pub fn run(args: ServeArgs) -> Result<()> {
     let state = AppState {
         db: Arc::new(Mutex::new(db)),
         root: args.root.clone(),
+        self_writes: Arc::new(SelfWriteSet::default()),
     };
     let app = build_router(state);
 

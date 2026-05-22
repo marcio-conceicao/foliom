@@ -1,10 +1,10 @@
-//! Wire-level response DTOs for the Phase 2 read-only REST API.
+//! Wire-level DTOs for the Phase 2/3 REST API.
 //!
-//! Schema source of truth: 02-RESEARCH §REST API Schema. All types serialize
-//! with `#[serde(rename_all = "camelCase")]` so the frontend can consume them
-//! as TypeScript interfaces with natural field names. Phase 3 will add the
-//! mutation counterparts (PUT/PATCH); Phase 2 keeps the wire surface
-//! read-only.
+//! Schema source of truth: 02-RESEARCH §REST API Schema and 03-RESEARCH §7.
+//! All types serialize with `#[serde(rename_all = "camelCase")]` so the
+//! frontend can consume them as TypeScript interfaces with natural field names.
+//! Phase 3 adds mutation DTOs (plan 03-03) alongside the existing read-only
+//! surface.
 
 use serde::{Deserialize, Serialize};
 
@@ -29,6 +29,13 @@ pub struct PageDetail {
     /// prelude block is always first; its `children` are the page's
     /// top-level (`depth = 0`) bullets.
     pub blocks: Vec<Block>,
+    /// BLAKE3 hash of the backing `.md` file, hex-encoded. Used by mutation
+    /// handlers as `prev_hash` for conflict detection (plan 03-03).
+    /// `None` for unresolved pages (no backing file).
+    pub file_hash: Option<String>,
+    /// SQL `pages.id`. Exposed so the POST /api/blocks frontend payload can
+    /// include `pageId` without an extra round-trip.
+    pub id: i64,
 }
 
 #[derive(Debug, Serialize)]
@@ -108,4 +115,78 @@ pub struct SearchHit {
     pub page: String,
     pub block_id: i64,
     pub snippet: String,
+}
+
+// ─── Plan 03-03 mutation DTOs ────────────────────────────────────────────────
+
+/// Response body for successful mutation endpoints (PUT/POST/PATCH/DELETE).
+///
+/// `block_subtree` mirrors the shape of `PageDetail.blocks` — it is the full
+/// updated tree for the affected page, built by `assemble_tree`. Plan 03-04
+/// (frontend) will diff this against the cached tree to update only changed
+/// blocks.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MutationResponse {
+    /// Full updated block tree for the page (same shape as `PageDetail.blocks`).
+    pub block_subtree: Vec<Block>,
+    /// New BLAKE3 file hash after the write, hex-encoded. The client must
+    /// pass this as `prevHash` in subsequent mutations.
+    pub file_hash: String,
+    /// SQL ids of blocks whose `raw` / offsets changed in this mutation.
+    pub dirty_block_ids: Vec<i64>,
+}
+
+/// Body for `PUT /api/blocks/:id` (edit block text).
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PutBlockRequest {
+    /// New block raw text (full block including segmenter prefix, ending `\n`).
+    pub raw: String,
+    /// Hex-encoded BLAKE3 hash of the current file contents the client last
+    /// read. If this doesn't match `files.hash`, the server returns 409.
+    pub prev_hash: String,
+}
+
+/// Body for `POST /api/blocks` (create new block).
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PostBlockRequest {
+    pub page_id: i64,
+    pub parent_id: Option<i64>,
+    pub ord: i32,
+    pub depth: i32,
+    pub raw: String,
+    pub prev_hash: String,
+}
+
+/// Body for `PATCH /api/blocks/:id/structure` (indent/outdent/move).
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PatchBlockStructureRequest {
+    /// `"indent"` | `"outdent"` | `"move"`.
+    pub op: String,
+    pub prev_hash: String,
+    /// For `op = "move"`: target parent id (null = top-level).
+    pub new_parent_id: Option<i64>,
+    /// For `op = "move"`: target sibling ordinal.
+    pub new_ord: Option<i32>,
+}
+
+/// Response body for `POST /api/blocks` (includes new block id).
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateBlockResponse {
+    pub id: i64,
+    pub block_subtree: Vec<Block>,
+    pub file_hash: String,
+}
+
+/// Error response body returned by mutation endpoints.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ErrorResponse {
+    pub error: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub current_file_hash: Option<String>,
 }

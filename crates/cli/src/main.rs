@@ -17,9 +17,8 @@
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use foliom_cli::cmd;
 use tracing_subscriber::EnvFilter;
-
-mod cmd;
 
 #[derive(Parser, Debug)]
 #[command(
