@@ -13,6 +13,7 @@
   import { sidebarPages, searchPalette } from '../stores';
   import JournalNavigator from './JournalNavigator.svelte';
   import ThemeToggle from './ThemeToggle.svelte';
+  import { watcherStatus } from '../stores/watcher';
 
   function openSearch(): void {
     searchPalette.set({ open: true, query: '' });
@@ -142,6 +143,9 @@
       <kbd>Ctrl+K</kbd>
     </button>
     <ThemeToggle />
+    <div class="watcher-pill" title="Watcher: {$watcherStatus}">
+      <span class="watcher-dot" data-status={$watcherStatus}></span>
+    </div>
   </footer>
 </nav>
 
@@ -232,5 +236,33 @@
   .error {
     color: #c33;
     font-size: 0.82rem;
+  }
+
+  /* Watcher status pill (D-40-05) — subtle connection indicator */
+  .watcher-pill {
+    display: flex;
+    align-items: center;
+    padding-top: 0.25rem;
+  }
+  .watcher-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .watcher-dot[data-status="connected"] {
+    background: #22c55e; /* green */
+  }
+  .watcher-dot[data-status="reconnecting"] {
+    background: #f59e0b; /* amber */
+    animation: watcher-pulse 1.2s ease-in-out infinite;
+  }
+  .watcher-dot[data-status="offline"] {
+    background: #9ca3af; /* grey */
+  }
+  @keyframes watcher-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.75); }
   }
 </style>

@@ -8,6 +8,7 @@
   import { applyZoomFromHash } from '../zoom';
   import { treeOpLog } from '../stores/treeOpLog';
   import { currentlyEditing } from '../stores/editing';
+  import { externalConflict } from '../stores/watcher';
 
   interface Params { name: string }
   let { params }: { params: Params } = $props();
@@ -16,8 +17,25 @@
   let error = $state<string | null>(null);
 
   // T-03-11: stale conflict banner state.
-  // Set to true when any mutation returns 409 Conflict.
+  // Set to true when any mutation returns 409 Conflict, OR when the watcher
+  // detects an external edit while a block is being edited (SNC-06, D-40-04).
   let staleConflict = $state(false);
+
+  // SNC-06: watcher-driven conflict path (Phase 4 plan 04-02).
+  // Subscribes to externalConflict store set by watcher.ts on pages_updated.
+  // - Block in edit mode: surface the existing staleConflict banner.
+  // - No block in edit mode: silent reload (no banner needed).
+  // Consumer must clear externalConflict after handling (T-04-06 mitigation).
+  $effect(() => {
+    const conflict = $externalConflict;
+    if (conflict === null) return;
+    if ($currentlyEditing !== null) {
+      staleConflict = true;          // surface the Phase 3 banner
+    } else {
+      void reload();                 // silent reload — no editor active
+    }
+    externalConflict.set(null);      // consume so the banner doesn't persist
+  });
 
   $effect(() => {
     const name = params.name;

@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import Router from 'svelte-spa-router';
   import { routes } from './routes';
   import { theme, searchPalette } from './lib/stores';
   import Sidebar from './lib/components/Sidebar.svelte';
   import SearchPalette from './lib/components/SearchPalette.svelte';
   import { bindGlobalShortcuts } from './lib/keys';
+  import { startWatcher, stopWatcher } from './lib/watcher';
 
   // Theme resolution lives at the App level so it (a) reacts to user
   // selection via the ThemeToggle (which writes the `theme` store) and
@@ -47,6 +49,18 @@
   let paletteOpen = $state(false);
   searchPalette.subscribe((s) => {
     paletteOpen = s.open;
+  });
+
+  // Start singleton SSE watcher on mount (D-40-02, D-40-05).
+  // stopWatcher on beforeunload prevents a zombie EventSource if the tab is
+  // closed before Svelte unmounts the component.
+  onMount(() => {
+    startWatcher();
+    window.addEventListener('beforeunload', stopWatcher);
+    return () => {
+      window.removeEventListener('beforeunload', stopWatcher);
+      stopWatcher();
+    };
   });
 </script>
 
