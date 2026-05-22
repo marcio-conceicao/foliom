@@ -34,7 +34,7 @@
 - [ ] **LNK-03**: Each page renders a backlinks panel listing blocks that reference it, queried via the `refs` index.
 - [ ] **LNK-04**: Clicking a link/tag navigates to the target page; clicking an unresolved link offers to create it.
 - [ ] **LNK-05**: Journal pages live in `journals/` as `YYYY_MM_DD.md` and display a formatted title (default English long form, e.g. "May 21st, 2026", configurable; reads `:journal/page-title-format` from `config.edn` when present).
-- [ ] **LNK-06**: A sidebar lists pages + recents + favorites; a journal navigator opens to today and lets the user jump to any date.
+- [x] **LNK-06**: A sidebar lists pages + recents + favorites; a journal navigator opens to today and lets the user jump to any date.
 - [ ] **LNK-07**: User can zoom into a single block (focus mode); identity is ephemeral via URL fragment (`#block=<indent-path>`) so it survives reload but does not require IDs in the file.
 
 ### Editor — Outliner (EDT)
@@ -139,7 +139,7 @@
 | LNK-02 | Phase 2 | Pending |
 | LNK-03 | Phase 2 | Pending |
 | LNK-05 | Phase 2 | Pending |
-| LNK-06 | Phase 2 | Pending |
+| LNK-06 | Phase 2 | Complete |
 | LNK-07 | Phase 2 | Pending |
 | SCH-01 | Phase 2 | Pending |
 | SCH-02 | Phase 2 | Pending |
