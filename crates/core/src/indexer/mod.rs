@@ -23,7 +23,11 @@ pub enum ReindexMode {
 }
 
 /// Statistics returned by [`reindex`].
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
+///
+/// Plan 01-07 added the `Serialize` derive (`camelCase`) so the CLI can
+/// emit it as the JSON contract for `foliom index --json` / `reindex --json`.
+#[derive(Debug, Default, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ReindexStats {
     /// Total entries visited by the scanner.
     pub scanned: usize,

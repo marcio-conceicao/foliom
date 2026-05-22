@@ -17,9 +17,7 @@ pub struct SearchHit {
     pub page_path: String,
     /// Rowid of the matching block (also the key into `blocks_fts`).
     pub block_id: i64,
-    /// FTS5-generated snippet with `[`…`]` marking the match. Falls back
-    /// to the leading `\u{2026}`-truncated raw text when FTS5 cannot
-    /// produce one (e.g. the matched column is empty).
+    /// FTS5-generated snippet with `[`…`]` marking the match.
     pub snippet: String,
 }
 
@@ -65,7 +63,7 @@ pub fn search_blocks(
         SELECT
             f.path                                                       AS page_path,
             b.id                                                         AS block_id,
-            snippet(blocks_fts, 0, '[', ']', '\u{2026}', 12)             AS snippet
+            snippet(blocks_fts, 0, '[', ']', '…', 12)                    AS snippet
         FROM blocks_fts
         JOIN blocks b ON b.id = blocks_fts.rowid
         JOIN pages  p ON p.id = b.page_id
