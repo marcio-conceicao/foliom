@@ -36,7 +36,7 @@
 - [x] 01-03-PLAN.md — Stage 2 parser (CommonMark + ref extraction) + RelativePath newtype (NFC + forward-slash)
 - [x] 01-04-PLAN.md — Storage schema (migration v1), DB-location resolver, Db wrapper with PRAGMAs
 - [x] 01-05-PLAN.md — Scanner with walkdir + ignore list + minimal config.edn :hidden reader
-- [ ] 01-06-PLAN.md — Indexer orchestrator (incremental + full reindex, per-file transactions)
+- [x] 01-06-PLAN.md — Indexer orchestrator (incremental + full reindex, per-file transactions)
 - [ ] 01-07-PLAN.md — CLI subcommands (index/reindex/search/dump-tree/inventory) + pinned inventory regression + green CI matrix
 
 ### Phase 2: Read-Only Web UI

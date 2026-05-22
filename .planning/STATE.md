@@ -8,8 +8,8 @@ progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 100
 ---
 
 # Foliom — Project State
@@ -29,10 +29,10 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 1 — Headless Indexing Core (in progress, plans 01–05 of ~7 complete)
-- **Plan:** 01-05 complete; next is 01-06 (indexer)
-- **Status:** Phase 1 plans 01–05 executed
-- **Progress:** [████████░░] 86%
+- **Phase:** 1 — Headless Indexing Core (in progress, plans 01–06 of ~7 complete)
+- **Plan:** 01-06 complete; next is 01-07 (CLI)
+- **Status:** Phase 1 plans 01–06 executed
+- **Progress:** [██████████] 100% of currently-planned plans (1 more — 01-07 CLI — pending)
 
 ---
 
@@ -58,6 +58,10 @@ progress:
 - Blocks materialized with both `raw` TEXT and `(byte_offset, byte_length)`; writeback via byte-splice, never whole-file re-serialize.
 - (Plan 01-05) Scanner uses `walkdir 2.5` with `follow_links(false)` + `filter_entry`; ignore list is the 11-name hard-coded set + `:hidden` from `config.edn`. `regex 1` is added only for the config.edn module; segmenter/parser hot path stays regex-free.
 - (Plan 01-05) Minimal `config.edn :hidden` reader is regex-based and NOT comment-aware — Phase 2 will upgrade if the renderer needs more keys.
+- (Plan 01-06) Indexer uses single-pass page discovery: `ensure_unresolved_page` creates `pages` rows with `file_id = NULL` on demand (D-04); `ensure_self_page_row` claims unresolved rows on first backing-file insert. No second walk needed because order doesn't matter — verified by `delete_db_and_rebuild_reproduces_row_counts`.
+- (Plan 01-06) Per-file SQLite transaction (AP-5) — failure of one file rolls back only that file's writes; orchestration continues for the rest of the corpus.
+- (Plan 01-06) Full mode on unchanged corpus reports `mtime_touched` (not `unchanged`) because Full skips the (mtime,size) fast path by definition.
+- (Plan 01-06) Synthetic fixture file count = 11 (10 pattern fixtures + README.md sibling). Real corpus = 620 files (locally verified).
 
 ### Open Decisions (PRD §12)
 
@@ -79,6 +83,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Completed Phase 1 Plan 05 — scanner + ignore list + minimal `config.edn :hidden` reader. 6 commits (3 RED + 3 GREEN), 92 workspace tests green, AP-2 clean. IDX-01 satisfied.
-**Next action:** Plan 01-06 — incremental indexer that consumes `scanner::walk` and persists files / pages / blocks / refs into the storage layer.
-**Resumption hint:** `scanner::walk(root, &ignore_set)` returns `Iterator<Item = ScanEntry>` where ScanEntry carries `(absolute path, mtime_ns, size)`. Indexer converts path via `RelativePath::from_filesystem(&path, root)` at the storage boundary. Read `config.edn :hidden` once at startup via `scanner::config_edn::read_hidden(root.join("logseq/config.edn"))` and feed to `IgnoreSet::extend_from_config_edn` before walking.
+**Last action:** Completed Phase 1 Plan 06 — indexer orchestrator (`reindex(&mut db, &root, mode)`) stitching scanner + parser + storage with per-file SQLite transactions. 3 task commits + metadata commit, 114 workspace tests green (including 12 new integration tests), AP-1/AP-2/AP-5 guards clean. IDX-02/03/04/05/07 and PRS-04/05/06 satisfied.
+**Next action:** Plan 01-07 — CLI subcommands (`index`, `reindex`, `search`, `dump-tree`, `inventory`) wired to `indexer::reindex`, `storage::Db`, and parser. JSON output via `--json`. Pinned inventory snapshot against the synthetic corpus + CI matrix.
+**Resumption hint:** `indexer::reindex(&mut Db, &Path, ReindexMode) -> Result<ReindexStats, IndexerError>` is the entry point. `ReindexStats { scanned, added, modified, unchanged, mtime_touched, deleted }` is the JSON shape (already derives Debug/Clone/PartialEq/Eq — add `serde::Serialize` when Plan 07 needs it). `Db::open(notes_root)` / `Db::open_at(db_path)` are the two ways to instantiate. Real-corpus run produces `ReindexStats { scanned: 620, added: 620, ... }` on first pass; second pass is idempotent.
