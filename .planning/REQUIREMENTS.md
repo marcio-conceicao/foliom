@@ -32,7 +32,7 @@
 - [x] **LNK-01**: Foliom recognizes `[[page]]`, `#tag`, and `#[[multi-word tag]]`; all three render inline as clickable chips/links (mid-sentence, not only at block start/end).
 - [x] **LNK-02**: Filename encoding handles spaces, accents, `&`, and `%2F` for Logseq-style namespace pages (`Parent%2FChild.md` ↔ `[[Parent/Child]]`).
 - [x] **LNK-03**: Each page renders a backlinks panel listing blocks that reference it, queried via the `refs` index.
-- [ ] **LNK-04**: Clicking a link/tag navigates to the target page; clicking an unresolved link offers to create it.
+- [x] **LNK-04**: Clicking a link/tag navigates to the target page; clicking an unresolved link offers to create it.
 - [x] **LNK-05**: Journal pages live in `journals/` as `YYYY_MM_DD.md` and display a formatted title (default English long form, e.g. "May 21st, 2026", configurable; reads `:journal/page-title-format` from `config.edn` when present).
 - [x] **LNK-06**: A sidebar lists pages + recents + favorites; a journal navigator opens to today and lets the user jump to any date.
 - [x] **LNK-07**: User can zoom into a single block (focus mode); identity is ephemeral via URL fragment (`#block=<indent-path>`) so it survives reload but does not require IDs in the file.
@@ -59,7 +59,7 @@
 - [x] **SNC-02**: File writes are atomic (write to temp + rename) and registered in a self-write set (hash of the just-written content with TTL) so the watcher does not re-trigger reindex for own writes.
 - [ ] **SNC-03**: A filesystem watcher (`notify-debouncer-full` `RecommendedCache`) detects external changes with ~250–500ms per-path debounce and refreshes both the index and the UI; survives atomic-rename saves from VS Code/Obsidian and bulk events from Syncthing/git.
 - [ ] **SNC-04**: Recursive watch is at the parent-directory level (not per-file) to avoid Linux inotify exhaustion; Windows `ReadDirectoryChangesW` overflow and macOS `MustScanSubDirs` trigger a rescan fallback.
-- [ ] **SNC-05**: Renaming a page rewrites all `[[oldname]]` and `[[oldname|alias]]` references across the corpus in one atomic transaction; backlinks survive.
+- [x] **SNC-05**: Renaming a page rewrites all `[[oldname]]` and `[[oldname|alias]]` references across the corpus in one atomic transaction; backlinks survive.
 - [ ] **SNC-06**: When an external edit and an in-flight foreground edit collide on the same block, the user is shown a conflict UI (foreground edit wins by default, with a one-click "discard mine / reload" option).
 
 ### Search (SCH)

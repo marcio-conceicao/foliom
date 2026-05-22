@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-05-22T07:06:24.194Z"
+last_updated: "2026-05-22T07:28:30.585Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 22
-  completed_plans: 20
-  percent: 91
+  completed_plans: 21
+  percent: 95
 ---
 
 # Foliom — Project State
@@ -32,7 +32,7 @@ progress:
 - **Phase:** 3 — Outliner Editor (in progress, 5 of 7 plans landed: 03-01, 03-02, 03-03, 03-04, 03-05).
 - **Plan:** 03-05 complete (autocomplete endpoint GET /api/autocomplete; CM6 completionSource for [[/# triggers; detectBulletTree TS port; serializeBlockTree; BulletPopover 6-action menu; applyInverse for Indent/Outdent/Delete/Move; paste extension wired; 153 frontend tests green, 8 backend tests green).
 - **Status:** Phase 3 plan 03-05 executed — autocomplete + paste + popover + treeOpLog inverses complete; awaiting plan 03-06 (page rename + unresolved-link create)
-- **Progress:** [█████████░] 91%
+- **Progress:** [██████████] 95%
 
 ---
 
