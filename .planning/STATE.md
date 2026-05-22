@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-05-22T06:52:49.615Z"
+last_updated: "2026-05-22T07:06:24.194Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 22
-  completed_plans: 19
-  percent: 86
+  completed_plans: 20
+  percent: 91
 ---
 
 # Foliom — Project State
 
-**Last updated:** 2026-05-22 (Plan 02-08 executed — Phase 2 complete, ready for `/gsd-verify-work`)
+**Last updated:** 2026-05-22 (Plan 03-05 executed — autocomplete endpoint, CM6 completionSource, paste detector, serialize, BulletPopover, treeOpLog inverses)
 
 ---
 
@@ -29,10 +29,10 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 3 — Outliner Editor (in progress, 3 of 7 plans landed: 03-01, 03-02, 03-03).
-- **Plan:** 03-03 complete (mutation REST API: PUT/POST/PATCH/DELETE /api/blocks with prev_hash conflict detection, atomic_write_md, self_writes registration, ref re-extraction; AppState.self_writes added; PageDetail.fileHash + .id added; 12 integration tests green; ACPT-01 green).
-- **Status:** Phase 3 plan 03-03 executed — mutation REST API complete (PUT/POST/PATCH/DELETE /api/blocks); awaiting plan 03-04 (frontend editor)
-- **Progress:** [█████████░] 86%
+- **Phase:** 3 — Outliner Editor (in progress, 5 of 7 plans landed: 03-01, 03-02, 03-03, 03-04, 03-05).
+- **Plan:** 03-05 complete (autocomplete endpoint GET /api/autocomplete; CM6 completionSource for [[/# triggers; detectBulletTree TS port; serializeBlockTree; BulletPopover 6-action menu; applyInverse for Indent/Outdent/Delete/Move; paste extension wired; 153 frontend tests green, 8 backend tests green).
+- **Status:** Phase 3 plan 03-05 executed — autocomplete + paste + popover + treeOpLog inverses complete; awaiting plan 03-06 (page rename + unresolved-link create)
+- **Progress:** [█████████░] 91%
 
 ---
 
@@ -58,6 +58,7 @@ progress:
 | Phase 03 P01 | 35min | 2 tasks | 9 files |
 | Phase 03 P02 | 25min | 2 tasks | 6 files |
 | Phase 03 P04 | 11min | 2 tasks | 18 files |
+| Phase 03 P05 | 10min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,12 @@ progress:
 - (Plan 03-03) `ApiError` is a new typed enum (NotFound/Stale/BadRequest/Internal) rather than re-using Phase 2's `StatusCode`. Reason: 409 Stale must return `{ error: "stale", currentFileHash: "..." }` structured body so clients can refresh.
 - (Plan 03-03) `PageDetail` gains `fileHash` (hex BLAKE3) + `id` fields so client can round-trip `prevHash` without a separate lookup. `fileHash` is `None` for unresolved pages.
 - (Plan 03-03) MutationResponse wire shape final: `{ blockSubtree, fileHash, dirtyBlockIds }`. CreateBlockResponse adds `id`. ErrorResponse: `{ error, currentFileHash? }`. Plan 03-04 frontend will depend on these shapes.
+- (Plan 03-05) refs.type='tag' (not kind), refs.target_page is INTEGER FK to pages.id — autocomplete SQL for tags must JOIN pages ON pages.id = refs.target_page. Plan spec said `WHERE kind='tag' AND target_page LIKE prefix%` which would fail (type column, not kind; integer, not string).
+- (Plan 03-05) detectBulletTree depth-0 continuation: accepts both TAB+2-space and plain 2-space, consistent with segment.rs. Empty lines also fold into parent block raw. Requires ≥2 bullet items per D-30-07.
+- (Plan 03-05) serializeBlockTree confirmed: block.raw is verbatim segment.rs output (leading TABs + "- " + text + "\n"). One-line recursive concat is correct — no additional formatting needed.
+- (Plan 03-05) applyInverse wired for Indent/Outdent (PATCH /structure depth), Delete (POST /blocks snapshot), Move (PATCH /structure parent+ord). Merge/Split inverse deferred to plan 03-06. 409 restores op to treeOpLog + signals stale banner.
+- (Plan 03-05) BlockEditorCallbacks.onPaste added as optional — existing 03-04 mounts unaffected (onPaste undefined → paste extension omitted from CM6 extensions array).
+- (Plan 03-05) BulletPopover absolute-positioned (left: 100%; top: 0) with $effect document keydown/mousedown listeners. No floating-ui dep.
 
 ### Open Decisions (PRD §12)
 
@@ -149,6 +156,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Completed Phase 2 Plan 08 — perf harness + CI matrix refactor (`ACPT-02`/`ACPT-03`/`IDX-04`). `foliom-bench-gen` (deterministic 5000-file corpus, ChaCha8Rng seeded), `crates/core/benches/cold_start.rs` (Criterion bench `cold_start_5k/db_open_reindex_full`), `foliom-bench-rss` (sysinfo probe, hand-rolled HTTP/1.1 GET, env overrides), `scripts/bench_assert.py` (Criterion estimates.json gate) + `scripts/test_bench_assert.py` (4-case unittest), full `.github/workflows/ci.yml` restructure (Node-before-Rust, bundle gate, E2E smoke, Linux-only `bench` job), `PERF-BASELINE.md` (first numbers + hardware caveat + A8 escalation protocol). 4 commits (2 RED + 2 GREEN). WSL2 baseline: cold start 12.20s, RSS 49 MB, bundle 248 KB. **Phase 2 is CODE-COMPLETE (8/8 plans). 15/15 milestone plans done. 100% progress.**
-**Next action:** Run `/gsd-verify-work` against Phase 2 to confirm all 18 acceptance requirements (LNK-01..07, SCH-01..03, UI-01..04, EDT-08, ACPT-02..04) have a passing gate. The single operator action item is the first GHA CI push to record ubuntu-latest numbers in `PERF-BASELINE.md` (two `to-be-recorded` rows). After verification, planning for Phase 3 (Outliner Editor) can begin.
-**Resumption hint:** Phase 2: 8/8 plans complete, all summaries present. Phase 2 directory: `.planning/phases/02-read-only-web-ui/{02-01..02-08}-SUMMARY.md` + `02-CONTEXT.md` + `02-RESEARCH.md` + `PERF-BASELINE.md`. CI: `test` matrix (Linux/macOS/Windows) → `bench` job (Linux-only, `needs: test`). Perf entry points: `cargo bench --bench cold_start`, `./target/release/foliom-bench-rss /tmp/synth-5k`, `python3 scripts/bench_assert.py <estimates.json> 3000000000`. Project skill set is unchanged. Pre-existing `svelte-check` warnings on `routes.ts` (Component params type mismatch for hash routes) remain as a Phase-3 hygiene item.
+**Last action:** Completed Phase 3 Plan 05 — autocomplete endpoint (GET /api/autocomplete kind=page|tag|all with LIKE escape + limit clamp), CM6 completionSource (fired on [[ and #), detectBulletTree (TS port of segment.rs Stage 1 bullet rule, ≥2 bullets required), serializeBlockTree (depth-first verbatim raw concat), BulletPopover.svelte (6 actions: cut/copy/duplicate/fold/zoom/copy-as-md), applyInverse in history-routing.ts (Indent/Outdent/Delete/Move wired; Merge/Split stubbed for 03-06), paste domEventHandler extension in extensions.ts. 4 commits (2 RED + 2 GREEN). 153 frontend tests green (+12), 8 new backend integration tests, bundle 753 KB.
+**Next action:** Execute plan 03-06 (page rename + unresolved-link create).
+**Resumption hint:** Phase 3: 5/7 plans complete (03-01..03-05). Remaining: 03-06 (page rename POST /api/pages/:name/rename + unresolved-link POST /api/pages) and 03-07 (ACPT-05 round-trip verification + IME acceptance test). Known stubs in 03-05: applyInverse Merge/Split (console.debug), duplicate/paste onSiblingCreate callback (needs pageId plumbing), arrow navigation neighbor-focus (from 03-04 deferred), Backspace-merge non-empty block (from 03-04 deferred).
