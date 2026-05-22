@@ -116,35 +116,54 @@ jobs:
           args: ${{ matrix.args }}
 
       # Footprint gate: installer size must be < 30 MB (DSK-03)
+      # macOS: delegates to scripts/footprint_check.sh (reusable bash script)
       - name: Footprint gate — DMG size < 30 MB (macOS)
         if: runner.os == 'macOS'
         shell: bash
         run: |
           DMG=$(ls target/universal-apple-darwin/release/bundle/dmg/*.dmg 2>/dev/null | head -1)
           if [ -z "$DMG" ]; then
-            echo "::error::No DMG found in target/universal-apple-darwin/release/bundle/dmg/"
+            echo "::error::No .dmg found — tauri-action may have failed"
             exit 1
           fi
-          SIZE_MB=$(du -sm "$DMG" | cut -f1)
-          echo "DMG size: ${SIZE_MB} MB (ceiling: 30 MB)"
-          if [ "$SIZE_MB" -gt 30 ]; then
-            echo "::error::DMG ${SIZE_MB} MB exceeds 30 MB budget (DSK-03)"
-            exit 1
-          fi
+          bash scripts/footprint_check.sh "$DMG" 30
 
-      - name: Footprint gate — MSI/NSIS size < 30 MB (Windows)
+      # Windows: inline PowerShell (footprint_check.sh is bash-only)
+      - name: Footprint gate — Installer size < 30 MB (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $installer = Get-ChildItem -Path "target\x86_64-pc-windows-msvc\release\bundle" `
             -Recurse -Include "*.msi","*.exe" | Select-Object -First 1
           if (-not $installer) {
-            Write-Error "No installer found in target\x86_64-pc-windows-msvc\release\bundle"
+            Write-Error "No installer found — tauri-action may have failed"
             exit 1
           }
-          $sizeMb = [math]::Round($installer.Length / 1MB)
-          Write-Host "Installer size: $sizeMb MB (ceiling: 30 MB)"
+          $sizeMb = [math]::Ceiling($installer.Length / 1MB)
+          Write-Host "Installer: $($installer.FullName)"
+          Write-Host "Size: $sizeMb MB  (ceiling: 30 MB)  [DSK-03]"
           if ($sizeMb -gt 30) {
             Write-Error "Installer $sizeMb MB exceeds 30 MB budget (DSK-03)"
             exit 1
           }
+          Write-Host "OK: installer size within budget"
+
+      # Footprint gate: idle RSS < 150 MB (DSK-03)
+      # Measures the foliom serve process only (axum + indexer + watcher).
+      # The Tauri WebView renderer (WebView2.exe / com.apple.WebKit.WebContent) runs in a
+      # separate OS process and is NOT captured — intentional for v1 (see PERF-BASELINE.md).
+      # Windows is skipped: foliom-bench-rss uses /proc/self/status which is Linux/macOS only.
+      - name: Footprint gate — Idle RSS < 150 MB
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          # Build the bench-rss binary (separate bin target; tauri-action doesn't build it).
+          cargo build --release --bin foliom-bench-rss --locked
+
+          # Use the synthetic fixture — always present, starts in < 1 s (12 files).
+          CORPUS_PATH="crates/core/tests/fixtures/logseq-synthetic"
+
+          # Override ceiling to 150 MB (DSK-03) and point at the release binary.
+          FOLIOM_BENCH_CEILING_MB=150 \
+          FOLIOM_BENCH_FOLIOM="target/release/foliom" \
+            ./target/release/foliom-bench-rss "$CORPUS_PATH"
