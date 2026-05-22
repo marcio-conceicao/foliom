@@ -159,6 +159,21 @@ This is not required in CI (ubuntu-latest runner has it) or on macOS/Windows (Ta
 
 - `src-tauri/icons/32x32.png`, `128x128.png`, `icon.icns`, `icon.ico` — Placeholder icon files (1x1 pixel PNG, 8-byte icns header, minimal ico). These prevent `cargo tauri build` from failing on missing icon files. Proper icons should be created with `cargo tauri icon <source.png>` before public release. This is explicitly out of scope for DSK-01 per plan spec ("proper icons are post-MVP").
 
+## Self-Check: PASSED
+
+- `src-tauri/src/main.rs`: FOUND
+- `src-tauri/Cargo.toml`: FOUND
+- `src-tauri/tauri.conf.json`: FOUND
+- `src-tauri/capabilities/default.json`: FOUND
+- `src-tauri/icons/32x32.png, 128x128.png, icon.icns, icon.ico`: FOUND (4 files)
+- `crates/cli/tests/bound_port_onceLock.rs`: FOUND
+- Commit `64ce7b0` (feat — scaffold + BOUND_PORT): FOUND
+- Commit `36e654b` (docs — SUMMARY): FOUND
+- `grep BOUND_PORT crates/cli/src/cmd/serve/mod.rs`: 2 matches (static decl + set call)
+- `grep WebviewUrl::External src-tauri/src/main.rs`: 1 code match (1 comment match)
+- `grep "tauri-plugin-localhost" src-tauri/Cargo.toml`: 0 matches (OK)
+- `cargo test -p foliom-cli`: All tests green
+
 ---
 *Phase: 05-desktop-packaging*
 *Completed: 2026-05-22*
