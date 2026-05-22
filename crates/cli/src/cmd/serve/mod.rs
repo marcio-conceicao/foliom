@@ -76,39 +76,19 @@ pub fn run(args: ServeArgs) -> Result<()> {
     let mut db = Db::open(&args.root)
         .with_context(|| format!("abrindo índice para a raiz {:?}", args.root))?;
 
-    // ---- 2. Startup reindex (fatal on error — D-22 / T-02-02) ----
-    let mode = if args.full {
-        ReindexMode::Full
-    } else {
-        ReindexMode::Incremental
-    };
-    let stats = reindex(&mut db, &args.root, mode)
-        .with_context(|| format!("reindex no startup para {:?}", args.root))?;
-    tracing::info!(
-        scanned = stats.scanned,
-        added = stats.added,
-        modified = stats.modified,
-        unchanged = stats.unchanged,
-        deleted = stats.deleted,
-        "reindex no startup concluído"
-    );
-
-    // ---- 3. Build shared state + router ----
-    // Open the rename journal and replay any pending entries from a previous
-    // crashed run (T-03-20 crash recovery — must run BEFORE axum starts
-    // accepting requests).
+    // ---- 2. Open rename journal + replay BEFORE reindex ----
+    // T-03-20: after a crash mid-rename, disk files may be partially rewritten.
+    // replay_journal repairs disk state so that the subsequent reindex sees
+    // consistent files. Inverting this order leaves the index stale until the
+    // next watcher event or restart.
     let journal = Arc::new(
         Journal::open_for_root(&args.root)
             .with_context(|| format!("abrindo rename journal para {:?}", args.root))?,
     );
 
     let self_writes = Arc::new(SelfWriteSet::default());
-
-    // Phase 4: broadcast channel for watcher → SSE fan-out (D-40-02, T-04-03).
-    // Capacity 64 per Q2 analysis; Lagged → IndexReset in the SSE handler.
     let (watcher_tx, _watcher_rx) = broadcast::channel::<WatcherEvent>(64);
     let watcher_tx = Arc::new(watcher_tx);
-
     let db_arc = Arc::new(Mutex::new(db));
 
     let state = AppState {
@@ -119,8 +99,28 @@ pub fn run(args: ServeArgs) -> Result<()> {
         watcher_tx: watcher_tx.clone(),
     };
 
-    // Replay journal BEFORE reindex so file state is consistent.
+    // Replay journal first — fixes any partially-renamed files on disk.
     replay_journal(&state).with_context(|| "replay do rename journal no startup")?;
+
+    // ---- 3. Startup reindex after journal replay (fatal on error — D-22 / T-02-02) ----
+    let mode = if args.full {
+        ReindexMode::Full
+    } else {
+        ReindexMode::Incremental
+    };
+    {
+        let mut db = state.db.lock().expect("db not poisoned");
+        let stats = reindex(&mut db, &args.root, mode)
+            .with_context(|| format!("reindex no startup para {:?}", args.root))?;
+        tracing::info!(
+            scanned = stats.scanned,
+            added = stats.added,
+            modified = stats.modified,
+            unchanged = stats.unchanged,
+            deleted = stats.deleted,
+            "reindex no startup concluído"
+        );
+    }
 
     // Phase 4: start filesystem watcher (SNC-03 + SNC-04).
     // Read FOLIOM_DEBOUNCE_MS for power-user override (D-40-01).

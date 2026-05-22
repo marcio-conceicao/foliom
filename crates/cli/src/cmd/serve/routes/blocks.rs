@@ -226,7 +226,7 @@ pub async fn put_block(
             tx.execute(
                 "UPDATE blocks SET byte_offset = byte_offset + ? \
                  WHERE page_id = ? AND byte_offset > ?",
-                params![delta, file_id, byte_offset],
+                params![delta, page_id, byte_offset],
             )?;
         }
 
@@ -460,7 +460,7 @@ pub async fn patch_block_structure(
                     tx.execute(
                         "UPDATE blocks SET byte_offset = byte_offset + ? \
                          WHERE page_id = ? AND byte_offset > ?",
-                        params![delta, file_id, byte_offset],
+                        params![delta, page_id, byte_offset],
                     )?;
                 }
 
@@ -539,7 +539,7 @@ pub async fn patch_block_structure(
                     tx.execute(
                         "UPDATE blocks SET byte_offset = byte_offset + ? \
                          WHERE page_id = ? AND byte_offset > ?",
-                        params![delta, file_id, byte_offset],
+                        params![delta, page_id, byte_offset],
                     )?;
                 }
 
