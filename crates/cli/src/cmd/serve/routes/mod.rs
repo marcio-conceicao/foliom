@@ -11,6 +11,7 @@ pub mod journals;
 pub mod pages;
 pub mod search;
 pub mod titles;
+pub mod watch;
 
 use axum::{Router, middleware as axum_middleware, routing::{delete, get, patch, post, put}};
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
@@ -47,6 +48,9 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/blocks/:id", put(blocks::put_block))
         .route("/api/blocks/:id/structure", patch(blocks::patch_block_structure))
         .route("/api/blocks/:id", delete(blocks::delete_block))
+        // Plan 04-01: live FS-event stream for external-edit detection (SNC-03).
+        // Protected by host_allowlist middleware (T-04-01). Lagged → IndexReset.
+        .route("/api/watch/events", get(watch::watch_events_handler))
         // Plan 02-07: SPA static-asset fallback. Misses on `/api/*` cannot
         // reach this — `Router::fallback` runs only when no `.route(...)`
         // matches. In debug: 307 to Vite (`localhost:5173`). In release:
