@@ -33,6 +33,13 @@ tower = { workspace = true }
 tower-http = { workspace = true }
 tokio = { workspace = true }
 open = { workspace = true }
+# Plan 02-02: handlers do raw SQL via `Connection::prepare`/`query_map`.
+# Pinned to the same version as crates/core to keep a single `libsqlite3-sys`
+# native link in the workspace (otherwise cargo fails the link check).
+rusqlite = { version = "0.39", features = ["bundled-full"] }
+# Plan 02-02: journal date formatting (LNK-05) + `now_local` for the
+# `/api/journals/today` redirect.
+time = { workspace = true }
 
 [dev-dependencies]
 assert_cmd = "2"

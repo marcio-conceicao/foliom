@@ -27,7 +27,8 @@ use foliom_core::storage::Db;
 // 10 fixture files + the top-level README.md that lives alongside the
 // `pages/` and `journals/` dirs in the fixture root. The scanner walks
 // every `.md` under the root, so the README counts.
-const SYNTHETIC_FILE_COUNT: usize = 11;
+// Phase 2 plan 02-02 added `pages/Avaliação.md` for Pitfall 6 verification.
+const SYNTHETIC_FILE_COUNT: usize = 12;
 
 /// Recursively copy `src` into `dst`, creating `dst` if missing.
 fn copy_dir_recursive(src: &Path, dst: &Path) {

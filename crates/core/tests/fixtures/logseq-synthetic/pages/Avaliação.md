@@ -1,0 +1,3 @@
+- Avaliação do trimestre — feedback geral
+	- Métricas batidas; precisamos revisar a Avaliação no próximo ciclo
+- Próxima reunião sobre a Avaliação ficou marcada para semana que vem

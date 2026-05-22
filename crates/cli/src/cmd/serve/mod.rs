@@ -13,6 +13,8 @@
 //!      `ctrl_c` graceful shutdown.
 
 pub mod browser;
+pub mod dto;
+pub mod format;
 pub mod middleware;
 pub mod routes;
 pub mod state;

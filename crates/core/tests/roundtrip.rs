@@ -27,7 +27,8 @@ use foliom_core::parser::segment::segment;
 /// Expected synthetic-corpus size — count of `.md` fixtures under
 /// `tests/fixtures/logseq-synthetic/`, excluding `README.md`. If you add or
 /// remove a fixture, update this constant.
-const EXPECTED_SYNTHETIC_COUNT: usize = 10;
+// Phase 2 plan 02-02 added `pages/Avaliação.md` for Pitfall 6 verification.
+const EXPECTED_SYNTHETIC_COUNT: usize = 11;
 
 #[test]
 fn roundtrip_byte_identical_for_synthetic_corpus() {

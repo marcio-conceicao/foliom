@@ -61,9 +61,11 @@ const EXPECTED_PATTERNS: &[(&str, u32, u32)] = &[
     ("code-fence-in-bullet", 3, 3),
     ("%2F-in-filename", 1, 1),
 ];
-const EXPECTED_SCANNED: u64 = 11;
+// Phase 2 plan 02-02 added `pages/Avaliação.md` to verify Pitfall 6 (FTS5
+// snippet UTF-8 round-trip). Counts bumped by +1 scanned, +1 page.
+const EXPECTED_SCANNED: u64 = 12;
 const EXPECTED_JOURNALS: u64 = 1;
-const EXPECTED_PAGES: u64 = 10;
+const EXPECTED_PAGES: u64 = 11;
 const EXPECTED_BLOCK_PROPERTY_FILES: u64 = 2;
 const EXPECTED_DRAWER_FILES: u64 = 3;
 

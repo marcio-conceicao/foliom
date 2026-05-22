@@ -1,8 +1,13 @@
-//! HTTP routing. Task 2 of plan 02-01 wires `/api/health`; subsequent
-//! plans (02-02..02-06) extend this router with the page/journal/search
-//! endpoints from D-24.
+//! HTTP routing. Plan 02-01 wired `/api/health`; plan 02-02 adds the seven
+//! read-only endpoints from D-24 (the SearchKind variants count as one
+//! route with query-driven routing). Subsequent plans (02-03..02-08) add
+//! the embedded SPA on `/`.
 
 pub mod health;
+pub mod journals;
+pub mod pages;
+pub mod search;
+pub mod titles;
 
 use axum::{Router, middleware as axum_middleware, routing::get};
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
@@ -17,7 +22,18 @@ use crate::cmd::serve::state::AppState;
 /// headers before any handler or compression work happens).
 pub fn build_router(state: AppState) -> Router {
     Router::new()
+        // Liveness probe (plan 02-01).
         .route("/api/health", get(health::get))
+        // Page surface (plan 02-02).
+        .route("/api/pages", get(pages::list))
+        .route("/api/pages/:name", get(pages::detail))
+        .route("/api/pages/:name/backlinks", get(pages::backlinks))
+        .route("/api/page-titles", get(titles::list))
+        // Journals (plan 02-02).
+        .route("/api/journals/today", get(journals::today))
+        .route("/api/journals", get(journals::range))
+        // Search (plan 02-02).
+        .route("/api/search", get(search::search))
         .with_state(state)
         .layer(CompressionLayer::new())
         .layer(TraceLayer::new_for_http())
