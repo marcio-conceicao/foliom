@@ -60,7 +60,7 @@
 - [x] **SNC-03**: A filesystem watcher (`notify-debouncer-full` `RecommendedCache`) detects external changes with ~250–500ms per-path debounce and refreshes both the index and the UI; survives atomic-rename saves from VS Code/Obsidian and bulk events from Syncthing/git.
 - [x] **SNC-04**: Recursive watch is at the parent-directory level (not per-file) to avoid Linux inotify exhaustion; Windows `ReadDirectoryChangesW` overflow and macOS `MustScanSubDirs` trigger a rescan fallback.
 - [x] **SNC-05**: Renaming a page rewrites all `[[oldname]]` and `[[oldname|alias]]` references across the corpus in one atomic transaction; backlinks survive.
-- [ ] **SNC-06**: When an external edit and an in-flight foreground edit collide on the same block, the user is shown a conflict UI (foreground edit wins by default, with a one-click "discard mine / reload" option).
+- [x] **SNC-06**: When an external edit and an in-flight foreground edit collide on the same block, the user is shown a conflict UI (foreground edit wins by default, with a one-click "discard mine / reload" option).
 
 ### Search (SCH)
 

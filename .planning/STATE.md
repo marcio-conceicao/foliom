@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-last_updated: "2026-05-22T12:44:51.999Z"
+status: executing
+last_updated: "2026-05-22T12:53:49.444Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 25
-  completed_plans: 23
-  percent: 92
+  completed_plans: 24
+  percent: 96
 ---
 
 # Foliom — Project State
 
-**Last updated:** 2026-05-22 (Plan 04-01 executed — watcher backend + SSE endpoint; SNC-03 + SNC-04 fulfilled; 12min)
+**Last updated:** 2026-05-22 (Plan 04-02 executed — frontend SSE watcher, watcherStatus store, conflict banner wire, Sidebar pill; SNC-06 fulfilled; 3min)
 
 ---
 
@@ -30,10 +30,10 @@ progress:
 
 - **Milestone:** v1
 - **Milestone:** v1
-- **Phase:** 4 — Disk Sync (in progress — 1/3 plans: 04-01 complete).
-- **Plan:** 04-01 complete (notify-debouncer-full watcher + BroadcastStream SSE endpoint; SNC-03 + SNC-04 fulfilled; 4 integration tests green).
-- **Status:** Phase 4 in progress — 04-02 (frontend SSE) next
-- **Progress:** [██████████] 96%
+- **Phase:** 4 — Disk Sync (in progress — 2/3 plans: 04-01, 04-02 complete).
+- **Plan:** 04-02 complete (frontend SSE watcher singleton + stores + conflict banner wire + Sidebar pill; SNC-06 fulfilled; 10 Vitest tests green; 177/177 total).
+- **Status:** Phase 4 in progress — 04-03 (CI integration smoke) next
+- **Progress:** [██████████] 97%
 
 ---
 
@@ -61,6 +61,7 @@ progress:
 | Phase 03 P04 | 11min | 2 tasks | 18 files |
 | Phase 03 P05 | 10min | 2 tasks | 14 files |
 | Phase 04 P01 | 12min | 2 tasks | 11 files |
+| Phase 04 P02 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,9 @@ progress:
 - (Plan 04-01) notify-debouncer-full watcher: mpsc::Sender as DebounceEventHandler (blocking OS thread, NOT tokio task). Event loop: Ok(events) → filter .md → path-traversal guard → SelfWriteSet::take_if_present → local suppressed-hash DashMap (600ms TTL) for multi-event inotify dedup → DirtySet. Drain on 300ms coalescing tick. Flag::Rescan (macOS MustScanSubDirs / Linux IN_Q_OVERFLOW) → full reindex + IndexReset SSE. Err branch (Windows ReadDirectoryChangesW) → same + re-arm. FOLIOM_DEBOUNCE_MS env override for power users.
 - (Plan 04-01) Local suppressed-hash cache is required: SelfWriteSet.take_if_present is consume-once but inotify emits multiple events per atomic rename (MOVED_TO + MODIFY + CLOSE_WRITE). After take_if_present succeeds, hash is cached in local DashMap for 600ms to absorb follow-up events.
 - (Plan 04-01) GET /api/watch/events SSE endpoint uses BroadcastStream::new(rx).map(sse_event_from_result); Lagged → index_reset (T-04-03); 30s KeepAlive.text("ping") (D-40-02). AppState.watcher_tx: Arc<broadcast::Sender<WatcherEvent>>(64).
+- (Plan 04-02) externalConflict one-shot signal pattern: watcher.ts sets; PageView.svelte always resets to null after handling — prevents perpetual banner (T-04-06). EventSource singleton guard uses readyState !== CLOSED (not null check) so a browser-reconnecting ES (CONNECTING state) is not replaced.
+- (Plan 04-02) App.svelte onMount for startWatcher (not module-level) so Vitest tests can assign MockEventSource to globalThis before the component mounts and captures the constructor.
+- (Plan 04-02) Watcher-status pill: CSS-only @keyframes watcher-pulse animation for reconnecting state. No JS animation. 8px dot, three data-status values binding to green/amber/grey.
 
 ### Open Decisions (PRD §12)
 
@@ -161,6 +165,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Plan 04-01 complete — notify-debouncer-full watcher + BroadcastStream SSE endpoint. commits: bfbe823 (RED tests), c1239dc (feat watcher), 7a06a1d (feat SSE route). 4 watcher_integration tests green, full workspace suite green.
-**Next action:** Plan 04-02 — frontend SSE subscription, watcherStatus Svelte store, conflict banner wire, Sidebar pill indicator.
-**Resumption hint:** Backend GET /api/watch/events live at 127.0.0.1:7345/api/watch/events. WatcherEvent enum + AppState.watcher_tx in place. Frontend needs EventSource + stores/watcher.ts + watcher.ts composable.
+**Last action:** Plan 04-02 complete — frontend SSE watcher singleton + stores + conflict banner + Sidebar pill. commits: 6d20839 (RED tests), 9f78698 (feat stores+watcher), 5695653 (feat App/PageView/Sidebar). 177/177 Vitest tests green. SNC-06 fulfilled.
+**Next action:** Plan 04-03 — CI integration smoke tests for watcher + full disk-sync pipeline.
+**Resumption hint:** Backend watcher + SSE endpoint live (04-01). Frontend watcher singleton live (04-02). Phase 4 needs 04-03 (CI smoke) to close out disk-sync phase.
