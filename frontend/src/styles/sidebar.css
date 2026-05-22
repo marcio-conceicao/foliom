@@ -1,0 +1,41 @@
+/* Sidebar shell — fixed-width rail on desktop, drawer behavior on narrow
+ * viewports. The visual contents live inside Sidebar.svelte's scoped CSS;
+ * this file is just the OUTER layout primitive consumed by App.svelte.
+ */
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+.layout > .sidebar {
+  border-right: 1px solid var(--guide-color);
+  padding: 0.75rem;
+  background: var(--bg);
+  color: var(--fg);
+  overflow-y: auto;
+}
+
+.layout > .main {
+  padding: 1rem 2rem;
+  background: var(--bg);
+  color: var(--fg);
+  overflow: auto;
+}
+
+/* Narrow viewport: collapse to a single column and let the sidebar sit
+ * above the main content. Phase 2 doesn't implement a true off-canvas
+ * drawer (no toggle UI yet); v1.x will replace this with a button +
+ * `position: fixed` drawer.
+ */
+@media (max-width: 720px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .layout > .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--guide-color);
+    max-height: 40vh;
+  }
+}

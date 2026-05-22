@@ -3,6 +3,7 @@
   import { md } from '../markdown';
   import { stripForRender } from '../markdown/strip';
   import type { Block as BlockData } from '../api';
+  import { sidebarPages } from '../stores';
   import Self from './Block.svelte';
 
   type Props = BlockData;
@@ -14,6 +15,38 @@
 
   const display = $derived(stripForRender(raw, depth, properties, drawers));
   const rendered = $derived(display ? md.render(display) : '');
+
+  // 02-05: retroactive `.unresolved` styling for `[[link]]` chips inside
+  // rendered block HTML. The markdown-it pathway can't know which targets
+  // exist because it's a pure transformation — so we consult `sidebarPages`
+  // (loaded by the Sidebar component) after the HTML is in the DOM. Empty
+  // sidebarPages means "we don't know yet" → render neutrally (don't dim
+  // chips just because the sidebar hasn't loaded yet).
+  let contentEl: HTMLDivElement | undefined = $state();
+  let resolvedSet = $state<Set<string>>(new Set());
+  sidebarPages.subscribe((pages) => {
+    resolvedSet = new Set(pages.filter((p) => p.isResolved).map((p) => p.name));
+  });
+  $effect(() => {
+    if (!contentEl) return;
+    // Re-run when rendered HTML or the resolvedSet changes.
+    void rendered;
+    void resolvedSet;
+    if (resolvedSet.size === 0) {
+      contentEl
+        .querySelectorAll('a.page-link.unresolved')
+        .forEach((el) => el.classList.remove('unresolved'));
+      return;
+    }
+    contentEl.querySelectorAll<HTMLAnchorElement>('a.page-link[data-page]').forEach((el) => {
+      const target = el.dataset.page ?? '';
+      if (resolvedSet.has(target)) {
+        el.classList.remove('unresolved');
+      } else {
+        el.classList.add('unresolved');
+      }
+    });
+  });
 
   // depth === -1 is the page prelude: render children only, no chrome.
   const isPrelude = $derived(depth === -1);
@@ -62,6 +95,7 @@
     <div
       class="content"
       role="presentation"
+      bind:this={contentEl}
       onclick={handleContentClick}
       onkeydown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {

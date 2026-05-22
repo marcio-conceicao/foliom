@@ -4,6 +4,33 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Foliom</title>
+    <script>
+      // Anti-FOUC: resolve theme BEFORE Svelte hydrates so the page doesn't
+      // flash light-on-dark or vice-versa. Mirrors the logic in App.svelte's
+      // $effect and ThemeToggle's pick() helper.
+      (function () {
+        try {
+          var t = globalThis.localStorage && globalThis.localStorage.getItem('theme');
+          var resolved;
+          if (t === 'light' || t === 'dark') {
+            resolved = t;
+          } else {
+            resolved = globalThis.matchMedia && globalThis.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
+          }
+          document.documentElement.dataset.theme = resolved;
+        } catch (err) {
+          // localStorage unavailable (e.g. private mode quota) — log + fall
+          // back to a safe default. App.svelte's $effect re-applies once
+          // mounted; theme is aesthetic, not load-bearing.
+          if (globalThis.console && globalThis.console.warn) {
+            globalThis.console.warn('Foliom: theme bootstrap failed, defaulting to light', err);
+          }
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

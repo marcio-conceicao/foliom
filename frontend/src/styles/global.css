@@ -60,3 +60,13 @@ html, body {
 
 a { color: var(--link-color); }
 code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+/* Unresolved page-link chip (02-CONTEXT §Specifics): italic + dim. Applied
+ * to .page-link elements in the sidebar (where Sidebar.svelte sets the
+ * class) and to .page-link elements inside rendered block content (where
+ * Block.svelte applies the class retroactively after consulting the
+ * sidebarPages store). */
+.page-link.unresolved {
+  font-style: italic;
+  opacity: 0.6;
+}
