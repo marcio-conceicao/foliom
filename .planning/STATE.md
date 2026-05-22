@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 3 plans 03-01 and 03-02 executed — awaiting plan 03-03 (mutation REST handlers will compose splice_block + atomic_write_md)
-last_updated: "2026-05-22T06:18:48.022Z"
+status: Phase 3 plan 03-03 executed — mutation REST API complete (PUT/POST/PATCH/DELETE /api/blocks); awaiting plan 03-04 (frontend editor)
+last_updated: "2026-05-22T06:36:58.356Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 22
-  completed_plans: 17
-  percent: 77
+  completed_plans: 18
+  percent: 82
 ---
 
 # Foliom — Project State
@@ -29,9 +29,9 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 3 — Outliner Editor (in progress, 1 of 7 plans landed: 03-01).
-- **Plan:** 03-02 complete (SNC-01: `crates/core::mutation::splice_block` + `compute_shifted_offsets` pure byte-splice math; `TreeOp` enum with invertible `apply()` covering Indent/Outdent/Merge/Split/Move/Delete; `MutableTree`/`BlockSnapshot` in-memory representation; 28 tests green including 49-instance round-trip noop over 11 synthetic fixtures). Ran in wave 1 parallel with 03-01.
-- **Status:** Phase 3 plans 03-01 and 03-02 executed — awaiting plan 03-03 (mutation REST handlers will compose splice_block + atomic_write_md)
+- **Phase:** 3 — Outliner Editor (in progress, 3 of 7 plans landed: 03-01, 03-02, 03-03).
+- **Plan:** 03-03 complete (mutation REST API: PUT/POST/PATCH/DELETE /api/blocks with prev_hash conflict detection, atomic_write_md, self_writes registration, ref re-extraction; AppState.self_writes added; PageDetail.fileHash + .id added; 12 integration tests green; ACPT-01 green).
+- **Status:** Phase 3 plan 03-03 executed — mutation REST API complete (PUT/POST/PATCH/DELETE /api/blocks); awaiting plan 03-04 (frontend editor)
 - **Progress:** [████████░░] 82%
 
 ---
@@ -120,6 +120,13 @@ progress:
 - (Plan 02-08) `cargo nextest` not installed locally; verified via `cargo test --workspace --no-fail-fast` (all 17 test binaries green). CI installs nextest via `taiki-e/install-action@nextest` so this affects only local verification.
 - (Plan 03-01) SNC-02 foundations: `crates/core::sync` module exposes `atomic_write_md(target, contents, &SelfWriteSet) -> io::Result<[u8;32]>` (same-FS temp+rename, blake3 hash registered BEFORE persist, Windows-only retry 50/100/200ms on `PermissionDenied`/`Other` for AV holds, unix parent fsync for crash safety). `SelfWriteSet` is `Clone + Send + Sync` over `Arc<DashMap<[u8;32], Instant>>` with configurable TTL (`DEFAULT_TTL = 30s`). Workspace pins `tempfile = "3"` (promoted from per-crate dev-dep) and `dashmap = "6"` (max-stable 6.2.1; 7.x is rc — explicitly rejected). A9 verified: `TempPath::persist` returns `PathPersistError { error, path }` so the retry loop re-attempts without rewriting contents. Windows AV smoke test is `#[cfg_attr(not(windows), ignore)]`; tolerates 0 or ≥3 attempts via test-only `LAST_PERSIST_ATTEMPTS` thread_local counter.
 - (Plan 03-01) Commit `a113c88` accidentally included `crates/core/src/mutation/{mod,splice,tree_ops}.rs` + `__tests__/splice_test.rs` scaffolding created out-of-band by a concurrent process (PLAN 03-02's territory per 03-RESEARCH §8). Files compile cleanly and pass tests; left in place. Plan 03-02 executor should treat them as a starting point, not re-create.
+- (Plan 03-03) Disk write before SQL transaction: crash between `atomic_write_md` and COMMIT self-heals on next reindex (hash mismatch triggers reparse). Inverse order (SQL first) leaves committed hash with stale bytes — harder to recover.
+- (Plan 03-03) `blocks` table has no `file_id` column — always resolve via `blocks.page_id → pages.file_id` JOIN. All offset-shift UPDATE statements use `page_id` filter.
+- (Plan 03-03) `foliom-cli` library target added (`src/lib.rs` + `[lib]` in Cargo.toml) so integration tests can import `AppState`/`build_router` for in-process `tower::ServiceExt::oneshot` tests. `main.rs` uses `foliom_cli::cmd` instead of local `mod cmd`.
+- (Plan 03-03) `PATCH /api/blocks/:id/structure` op=move defers byte-level file reorder to Phase 5 — only SQL tree updated. File byte order is cosmetically wrong but functionally irrelevant until user views raw `.md`. Documented in handler.
+- (Plan 03-03) `ApiError` is a new typed enum (NotFound/Stale/BadRequest/Internal) rather than re-using Phase 2's `StatusCode`. Reason: 409 Stale must return `{ error: "stale", currentFileHash: "..." }` structured body so clients can refresh.
+- (Plan 03-03) `PageDetail` gains `fileHash` (hex BLAKE3) + `id` fields so client can round-trip `prevHash` without a separate lookup. `fileHash` is `None` for unresolved pages.
+- (Plan 03-03) MutationResponse wire shape final: `{ blockSubtree, fileHash, dirtyBlockIds }`. CreateBlockResponse adds `id`. ErrorResponse: `{ error, currentFileHash? }`. Plan 03-04 frontend will depend on these shapes.
 
 ### Open Decisions (PRD §12)
 

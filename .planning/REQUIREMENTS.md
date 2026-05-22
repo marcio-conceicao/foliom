@@ -40,8 +40,8 @@
 ### Editor — Outliner (EDT)
 
 - [ ] **EDT-01**: At any moment **at most one block is in edit**. The focused block shows raw markdown (CodeMirror 6 textarea); all other blocks render read-only.
-- [ ] **EDT-02**: Transition render → edit on focus/click; edit → render on `blur` or `Enter`, reparsing only that block's raw text.
-- [ ] **EDT-03**: The raw text of a block is the only source of truth; HTML is a discardable projection. Foliom never reconstructs markdown from HTML.
+- [x] **EDT-02**: Transition render → edit on focus/click; edit → render on `blur` or `Enter`, reparsing only that block's raw text.
+- [x] **EDT-03**: The raw text of a block is the only source of truth; HTML is a discardable projection. Foliom never reconstructs markdown from HTML.
 - [ ] **EDT-04**: `Enter` creates a sibling block; `Shift+Enter` inserts a newline within the same block (code fence stays multi-line).
 - [ ] **EDT-05**: `Tab` / `Shift+Tab` indent/outdent the current block (hierarchy mutation).
 - [ ] **EDT-06**: `Backspace` at the start of a block merges with the previous block.
