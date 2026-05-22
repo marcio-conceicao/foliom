@@ -30,10 +30,10 @@
 ### Linking & Navigation (LNK)
 
 - [x] **LNK-01**: Foliom recognizes `[[page]]`, `#tag`, and `#[[multi-word tag]]`; all three render inline as clickable chips/links (mid-sentence, not only at block start/end).
-- [ ] **LNK-02**: Filename encoding handles spaces, accents, `&`, and `%2F` for Logseq-style namespace pages (`Parent%2FChild.md` ↔ `[[Parent/Child]]`).
+- [x] **LNK-02**: Filename encoding handles spaces, accents, `&`, and `%2F` for Logseq-style namespace pages (`Parent%2FChild.md` ↔ `[[Parent/Child]]`).
 - [x] **LNK-03**: Each page renders a backlinks panel listing blocks that reference it, queried via the `refs` index.
 - [ ] **LNK-04**: Clicking a link/tag navigates to the target page; clicking an unresolved link offers to create it.
-- [ ] **LNK-05**: Journal pages live in `journals/` as `YYYY_MM_DD.md` and display a formatted title (default English long form, e.g. "May 21st, 2026", configurable; reads `:journal/page-title-format` from `config.edn` when present).
+- [x] **LNK-05**: Journal pages live in `journals/` as `YYYY_MM_DD.md` and display a formatted title (default English long form, e.g. "May 21st, 2026", configurable; reads `:journal/page-title-format` from `config.edn` when present).
 - [x] **LNK-06**: A sidebar lists pages + recents + favorites; a journal navigator opens to today and lets the user jump to any date.
 - [x] **LNK-07**: User can zoom into a single block (focus mode); identity is ephemeral via URL fragment (`#block=<indent-path>`) so it survives reload but does not require IDs in the file.
 
@@ -136,9 +136,9 @@
 | ACPT-01 | Phase 1 | Complete (local Linux/WSL; Windows pending first push) |
 | ACPT-04 | Phase 1 | Complete |
 | LNK-01 | Phase 2 | Complete |
-| LNK-02 | Phase 2 | Pending |
+| LNK-02 | Phase 2 | Complete |
 | LNK-03 | Phase 2 | Complete |
-| LNK-05 | Phase 2 | Pending |
+| LNK-05 | Phase 2 | Complete (config.edn override deferred to v1.x) |
 | LNK-06 | Phase 2 | Complete |
 | LNK-07 | Phase 2 | Complete |
 | SCH-01 | Phase 2 | Complete |
