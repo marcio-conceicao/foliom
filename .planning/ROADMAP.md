@@ -12,7 +12,7 @@
 
 - [x] **Phase 1: Headless Indexing Core** — Round-trip CI gate + inventory script + scanner/parser/indexer/CLI; no UI. (completed 2026-05-22)
 - [x] **Phase 2: Read-Only Web UI** — Svelte frontend over axum HTTP serving rendered pages, navigation, backlinks, search. (code-complete 2026-05-22 — awaiting `/gsd-verify-work`)
-- [ ] **Phase 3: Outliner Editor** — CodeMirror 6 single-block editor with byte-splice writeback, undo/redo, rename-with-backlinks.
+- [x] **Phase 3: Outliner Editor** — CodeMirror 6 single-block editor with byte-splice writeback, undo/redo, rename-with-backlinks. (completed 2026-05-22 — ACPT-05 visual review deferred to end)
 - [x] **Phase 4: Disk Sync** — Filesystem watcher with self-write suppression, SSE live updates, conflict UI. (completed 2026-05-22)
 - [x] **Phase 5: Desktop Packaging** — Tauri 2 shell, signed installers, footprint gate. (completed 2026-05-22)
 
