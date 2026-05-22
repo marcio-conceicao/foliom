@@ -24,7 +24,7 @@ pub mod watcher;
 use std::io;
 use std::net::{Ipv4Addr, SocketAddr, TcpListener as StdTcpListener};
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use anyhow::{Context, Result};
 use clap::Args;
@@ -39,6 +39,12 @@ use crate::cmd::serve::dto::WatcherEvent;
 use crate::cmd::serve::routes::build_router;
 use crate::cmd::serve::state::AppState;
 use crate::cmd::serve::watcher::spawn_watcher;
+
+/// Porta TCP que `serve::run()` realmente vinculou.
+///
+/// Escrita após `bind_loopback()` retornar, ANTES de `rt.block_on(...)`.
+/// O shell Tauri lê este valor via polling para construir a URL do WebView.
+pub static BOUND_PORT: OnceLock<u16> = OnceLock::new();
 
 /// Argumentos do subcomando `foliom serve`.
 ///
@@ -143,6 +149,11 @@ pub fn run(args: ServeArgs) -> Result<()> {
         .local_addr()
         .context("obtendo endereço local do listener")?;
     let url = format!("http://{bound}");
+
+    // Publica a porta antes de rt.block_on para o shell Tauri (D-50-02).
+    // `let _ =` suprime o aviso de Err caso run() seja chamado duas vezes
+    // (não acontece em produção, mas evita um warning de compilação).
+    let _ = BOUND_PORT.set(bound.port());
 
     // Startup banner (stdout, sempre visível — não gated por RUST_LOG).
     println!("Foliom servindo em {url} — Ctrl+C para parar");

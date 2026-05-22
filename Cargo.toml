@@ -4,7 +4,7 @@
 # rust-version 1.85 declares MSRV.
 
 [workspace]
-members = ["crates/core", "crates/cli"]
+members = ["crates/core", "crates/cli", "src-tauri"]
 resolver = "2"
 
 [workspace.package]
