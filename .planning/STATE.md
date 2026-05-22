@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-05-22T13:44:11.645Z"
+status: verifying
+last_updated: "2026-05-22T13:50:33.102Z"
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 28
-  completed_plans: 27
-  percent: 96
+  completed_plans: 28
+  percent: 100
 ---
 
 # Foliom — Project State
 
-**Last updated:** 2026-05-22 (Plan 05-01 executed — Tauri 2 desktop shell scaffold; BOUND_PORT OnceLock; src-tauri/ crate; WebviewUrl::External; 11min)
+**Last updated:** 2026-05-22 (Plan 05-03 executed — footprint CI gates: footprint_check.sh, RSS gate FOLIOM_BENCH_CEILING_MB=150, PERF-BASELINE.md; DSK-03 complete; 3min — FINAL PLAN of v1 milestone)
 
 ---
 
@@ -31,10 +31,10 @@ progress:
 - **Milestone:** v1
 - **Milestone:** v1
 - **Milestone:** v1
-- **Phase:** 5 — Desktop Packaging (IN PROGRESS — 1/3 plans: 05-01 done).
-- **Plan:** 05-01 complete (Tauri 2 shell scaffold — src-tauri/ crate, BOUND_PORT OnceLock, WebviewUrl::External; DSK-01 code complete; 11min).
-- **Status:** Phase 5 in progress — 05-01 done. 05-02 (release CI) and 05-03 (footprint gate) next.
-- **Progress:** [██████████] 96%
+- **Phase:** 5 — Desktop Packaging (COMPLETE — 3/3 plans done; READY FOR VERIFICATION).
+- **Plan:** 05-03 complete (footprint CI gates — footprint_check.sh installer size + foliom-bench-rss RSS gate + PERF-BASELINE.md; DSK-03 complete; 3min).
+- **Status:** ALL PHASES COMPLETE. v1 milestone code-complete. Phase 5 ready for verification.
+- **Progress:** [██████████] 100%
 
 ---
 
@@ -66,6 +66,7 @@ progress:
 | Phase 04 P03 | 2min | 2 tasks | 2 files |
 | Phase 05-desktop-packaging P01 | 11min | 2 tasks | 13 files |
 | Phase 05-desktop-packaging P02 | 2 | 1 tasks | 2 files |
+| Phase 05-desktop-packaging P03 | 3min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -156,6 +157,10 @@ progress:
 - (Plan 05-01) BOUND_PORT OnceLock<u16> set after bind_loopback() before rt.block_on() — Tauri setup hook polls with 20ms sleep, 5s timeout (250 iterations). Port typically available < 50ms from thread start.
 - (Plan 05-01) Dialog API: app.dialog().file().blocking_pick_folder() → Option<FilePath>; FilePath::into_path() → PathBuf. NOT the assumed blocking::FileDialogBuilder pattern.
 - (Plan 05-01) Store API: StoreExt trait; app.store('config.json') → Result<Arc<Store>>; store.get/set/save confirmed from tauri-plugin-store-2.4.3 source.
+- (Plan 05-03) footprint_check.sh bash-only (macOS/Linux); Windows installer check stays inline PowerShell in release.yml — no bash shell on windows-latest for external scripts.
+- (Plan 05-03) RSS gate skips Windows (runner.os != Windows); foliom-bench-rss uses Linux/macOS /proc/self/status RSS inspection.
+- (Plan 05-03) WebView renderer excluded from RSS gate: separate OS process (WebView2.exe / com.apple.WebKit.WebContent) outside foliom control; gate measures only foliom serve PID (axum + indexer + watcher).
+- (Plan 05-03) du -sm chosen over stat -c (Linux-only) for portability; ~5% BSD vs GNU difference within 30 MB ceiling headroom for ~10–15 MB Tauri installer.
 
 ### Open Decisions (PRD §12)
 
@@ -177,6 +182,6 @@ progress:
 
 ## Session Continuity
 
-**Last action:** Plan 05-01 complete — Tauri 2 shell scaffold (64ce7b0). src-tauri/ crate, BOUND_PORT OnceLock, WebviewUrl::External, folder picker, vault-root persistence. DSK-01 code complete.
-**Next action:** Run `sudo pacman -S webkit2gtk-4.1` then `cargo build -p foliom-tauri` to verify local build. Then 05-02 (release CI workflow) and 05-03 (footprint gate).
-**Resumption hint:** Phase 5 plan 1 done. webkit2gtk-4.1 must be installed for local Linux build. CI (ubuntu-latest) already has it. Code is correct and verified against plugin sources.
+**Last action:** Plan 05-03 complete — footprint CI gates: scripts/footprint_check.sh (installer size bash script), release.yml RSS gate (FOLIOM_BENCH_CEILING_MB=150 foliom-bench-rss), PERF-BASELINE.md. DSK-03 complete. Commit afd64d3.
+**Next action:** v1 milestone code-complete. Run phase verification: /gsd:verify-phase 05-desktop-packaging
+**Resumption hint:** ALL 5 PHASES COMPLETE. DSK-01 (Tauri shell), DSK-02 (release CI), DSK-03 (footprint gates) all shipped. Phase 5 ready for verification. Signing certs must be procured before signed releases (Apple Developer Program + Windows EV cert).

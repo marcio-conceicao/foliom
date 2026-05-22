@@ -14,7 +14,7 @@
 - [x] **Phase 2: Read-Only Web UI** — Svelte frontend over axum HTTP serving rendered pages, navigation, backlinks, search. (code-complete 2026-05-22 — awaiting `/gsd-verify-work`)
 - [ ] **Phase 3: Outliner Editor** — CodeMirror 6 single-block editor with byte-splice writeback, undo/redo, rename-with-backlinks.
 - [x] **Phase 4: Disk Sync** — Filesystem watcher with self-write suppression, SSE live updates, conflict UI. (completed 2026-05-22)
-- [ ] **Phase 5: Desktop Packaging** — Tauri 2 shell, signed installers, footprint gate.
+- [x] **Phase 5: Desktop Packaging** — Tauri 2 shell, signed installers, footprint gate. (completed 2026-05-22)
 
 ---
 
@@ -106,7 +106,7 @@
 **Plans**: 3 plans
 - [x] 05-01-PLAN.md — src-tauri/ Tauri shell: BOUND_PORT, WebviewUrl::External, folder picker, config store
 - [x] 05-02-PLAN.md — Release CI: macOS universal + Windows x64, conditional signing + notarization, GitHub Release
-- [ ] 05-03-PLAN.md — Footprint gate: installer < 30 MB + idle RSS < 150 MB CI assertions
+- [x] 05-03-PLAN.md — Footprint gate: installer < 30 MB + idle RSS < 150 MB CI assertions
 **UI hint**: yes
 
 ---
@@ -119,7 +119,7 @@
 | 2. Read-Only Web UI | 0/8 | Not started | - |
 | 3. Outliner Editor | 4/7 | In Progress|  |
 | 4. Disk Sync | 3/3 | Complete   | 2026-05-22 |
-| 5. Desktop Packaging | 1/3 | In Progress|  |
+| 5. Desktop Packaging | 3/3 | Complete   | 2026-05-22 |
 
 ---
 
