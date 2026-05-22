@@ -14,3 +14,11 @@
 # macOS/Windows junk.
 .DS_Store
 Thumbs.db
+
+# Frontend build artifacts and deps (defense-in-depth; frontend/.gitignore is the primary).
+/frontend/node_modules/
+/frontend/dist/*
+!/frontend/dist/.gitkeep
+
+# Generated benchmark corpus (plan 02-08).
+/crates/core/benches/fixtures/synthetic-5k/
