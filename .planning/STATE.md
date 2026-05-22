@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Phase 1 plans 01–06 executed
-last_updated: "2026-05-22T00:58:34.373Z"
+last_updated: "2026-05-22T01:41:52.476Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_plans: 15
+  completed_plans: 8
+  percent: 53
 ---
 
 # Foliom — Project State
 
-**Last updated:** 2026-05-21
+**Last updated:** 2026-05-22
 
 ---
 
@@ -29,10 +29,10 @@ progress:
 ## Current Position
 
 - **Milestone:** v1
-- **Phase:** 1 — Headless Indexing Core (in progress, plans 01–06 of ~7 complete)
-- **Plan:** 01-06 complete; next is 01-07 (CLI)
-- **Status:** Phase 1 plans 01–06 executed
-- **Progress:** [██████████] 100%
+- **Phase:** 2 — Read-Only Web UI (in progress, plan 02-01 of 8 complete)
+- **Plan:** 02-01 complete (HTTP scaffold); next is 02-02
+- **Status:** Phase 2 plan 02-01 executed
+- **Progress:** [█████░░░░░] 53%
 
 ---
 
@@ -48,6 +48,7 @@ progress:
 
 ---
 | Phase 01 P07 | 25 | 5 tasks | 17 files |
+| Phase 02 P01 | 16m | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,7 @@ progress:
 - (Plan 01-06) Per-file SQLite transaction (AP-5) — failure of one file rolls back only that file's writes; orchestration continues for the rest of the corpus.
 - (Plan 01-06) Full mode on unchanged corpus reports `mtime_touched` (not `unchanged`) because Full skips the (mtime,size) fast path by definition.
 - (Plan 01-06) Synthetic fixture file count = 11 (10 pattern fixtures + README.md sibling). Real corpus = 620 files (locally verified).
+- (Plan 02-01) HTTP scaffold: `foliom serve <root>` on 127.0.0.1:7345 via axum 0.7 + tokio current_thread + `Arc<Mutex<Db>>` shared state (D-22..D-25, D-38). Host-header allowlist rejects DNS rebinding with 421 Misdirected Request (T-02-01 mitigation). Graceful shutdown via `tokio::signal::ctrl_c`. AddrInUse on requested port falls back to OS-assigned :0.
 
 ### Open Decisions (PRD §12)
 
