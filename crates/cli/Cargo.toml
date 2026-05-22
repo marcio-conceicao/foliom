@@ -33,6 +33,12 @@ tower = { workspace = true }
 tower-http = { workspace = true }
 tokio = { workspace = true }
 open = { workspace = true }
+# Plan 02-07: single-binary embed of frontend/dist + Content-Type lookup.
+# In debug builds rust-embed is still linked (the macro is cfg'd away in
+# embed.rs) but pulls no assets — `cargo check` on a fresh clone with only
+# `frontend/dist/.gitkeep` succeeds.
+rust-embed = { workspace = true }
+mime_guess = { workspace = true }
 # Plan 02-02: handlers do raw SQL via `Connection::prepare`/`query_map`.
 # Pinned to the same version as crates/core to keep a single `libsqlite3-sys`
 # native link in the workspace (otherwise cargo fails the link check).

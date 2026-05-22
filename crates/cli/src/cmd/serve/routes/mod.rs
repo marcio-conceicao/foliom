@@ -12,6 +12,7 @@ pub mod titles;
 use axum::{Router, middleware as axum_middleware, routing::get};
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 
+use crate::cmd::serve::embed;
 use crate::cmd::serve::middleware::host_allowlist;
 use crate::cmd::serve::state::AppState;
 
@@ -34,6 +35,11 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/journals", get(journals::range))
         // Search (plan 02-02).
         .route("/api/search", get(search::search))
+        // Plan 02-07: SPA static-asset fallback. Misses on `/api/*` cannot
+        // reach this — `Router::fallback` runs only when no `.route(...)`
+        // matches. In debug: 307 to Vite (`localhost:5173`). In release:
+        // serve from the rust-embed bundle with SPA fallback to index.html.
+        .fallback(embed::serve_static)
         .with_state(state)
         .layer(CompressionLayer::new())
         .layer(TraceLayer::new_for_http())

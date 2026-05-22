@@ -91,47 +91,48 @@ fn debug_root_redirects_to_vite_5173() {
     let url = format!("http://127.0.0.1:{port}/");
 
     // ureq follows redirects by default. Disable so we can inspect the 307.
+    // ureq classifies 3xx with `redirects(0)` as a successful response
+    // (NOT as an error variant), so match on `resp.status()` directly.
     let agent = ureq::AgentBuilder::new().redirects(0).build();
-    let result = agent.get(&url).call();
-    match result {
-        Err(ureq::Error::Status(307, resp)) => {
-            let location = resp
-                .header("location")
-                .expect("redirect must have Location header");
-            assert!(
-                location.starts_with("http://localhost:5173/"),
-                "expected redirect to localhost:5173, got {location}"
-            );
-        }
-        Err(ureq::Error::Status(code, _)) => {
-            let _ = child.kill();
-            panic!("expected 307 redirect, got HTTP {code}");
-        }
-        Ok(resp) => {
-            let _ = child.kill();
-            panic!("expected 307 redirect, got success {}", resp.status());
-        }
+    let resp = match agent.get(&url).call() {
+        Ok(r) => r,
+        Err(ureq::Error::Status(_, r)) => r,
         Err(err) => {
             let _ = child.kill();
             panic!("transport error: {err}");
         }
-    }
+    };
+    assert_eq!(
+        resp.status(),
+        307,
+        "GET / in debug must be 307 redirect to Vite, got {}",
+        resp.status()
+    );
+    let location = resp
+        .header("location")
+        .expect("redirect must have Location header")
+        .to_string();
+    assert!(
+        location.starts_with("http://localhost:5173/"),
+        "expected redirect to localhost:5173, got {location}"
+    );
 
     // Asset path also redirects.
     let asset_url = format!("http://127.0.0.1:{port}/assets/index.js");
-    match agent.get(&asset_url).call() {
-        Err(ureq::Error::Status(307, resp)) => {
-            let location = resp.header("location").unwrap_or("");
-            assert!(
-                location == "http://localhost:5173/assets/index.js",
-                "asset redirect mismatch: {location}"
-            );
-        }
-        other => {
+    let resp = match agent.get(&asset_url).call() {
+        Ok(r) => r,
+        Err(ureq::Error::Status(_, r)) => r,
+        Err(err) => {
             let _ = child.kill();
-            panic!("expected 307 for asset path; got {other:?}");
+            panic!("transport error fetching asset: {err}");
         }
-    }
+    };
+    assert_eq!(resp.status(), 307, "asset path must 307 in debug");
+    let location = resp.header("location").unwrap_or("").to_string();
+    assert_eq!(
+        location, "http://localhost:5173/assets/index.js",
+        "asset redirect mismatch"
+    );
 
     // /api/* must NOT be intercepted: fallback only fires on misses.
     let health_url = format!("http://127.0.0.1:{port}/api/health");

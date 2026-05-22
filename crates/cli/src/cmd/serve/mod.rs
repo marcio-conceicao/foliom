@@ -14,6 +14,7 @@
 
 pub mod browser;
 pub mod dto;
+pub mod embed;
 pub mod format;
 pub mod middleware;
 pub mod routes;

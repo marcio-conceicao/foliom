@@ -35,6 +35,25 @@ O `cargo build` do binário final (plan 02-07) **embute** `frontend/dist/` via `
 
 Para garantir que `cargo check` funcione em clones limpos antes do primeiro `npm run build`, mantemos `frontend/dist/.gitkeep` comitado — o macro `rust-embed` precisa de uma pasta existente.
 
+### Build de produção (binário único, sem Node em runtime)
+
+```bash
+cd frontend && npm ci && npm run build
+cd .. && cargo build --release --workspace --locked
+./target/release/foliom serve <root-de-notas> --open
+```
+
+O `--open` abre o navegador padrão na URL do servidor (best-effort via crate `open`; falha em ambientes headless — Linux sem `xdg-open`, SSH, etc — é não-fatal e produz uma única linha em `tracing::warn!` para o usuário colar a URL manualmente).
+
+### Comportamento dev vs prod do fallback de `/`
+
+| Profile | `GET /` | `/assets/<hash>.js` | `/some/spa/path` | `/api/*` |
+| ------- | ------- | ------------------- | ---------------- | -------- |
+| `cargo build` (debug) | 307 → `http://localhost:5173/` | 307 → Vite | 307 → Vite | handler normal |
+| `cargo build --release` | `text/html` (index.html, `no-cache`) | `application/javascript` (`max-age=3600`) | SPA fallback → index.html | handler normal |
+
+`rust-embed` só vê assets quando `frontend/dist/` contém arquivos. Em release builds com apenas `.gitkeep`, `GET /` retorna 404 — rode `npm run build` ANTES do `cargo build --release` em produção/CI.
+
 ## Stack
 
 - **Svelte 5.37+** com runes (`$state`, `$derived`, `$effect`) — sem `export let`.

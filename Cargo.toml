@@ -26,3 +26,11 @@ tower-http = { version = "0.6", features = ["compression-full", "trace"] }
 tokio = { version = "1.40", features = ["macros", "rt", "signal", "net"] }
 open = "5"
 time = { version = "0.3", features = ["formatting", "local-offset", "macros"] }
+# Plan 02-07: single-binary distribution. rust-embed compiles `frontend/dist/`
+# into the release binary; mime_guess sets correct Content-Type per asset.
+# Audited in 02-RESEARCH §Package Legitimacy Audit (T-02-SC mitigation):
+#   - rust-embed: pyrossh/rust-embed, mature; `compression` feature gzips
+#     embedded bytes at compile time (smaller binary).
+#   - mime_guess: abonander/mime_guess, de-facto MIME lookup crate.
+rust-embed = { version = "8", default-features = false, features = ["compression"] }
+mime_guess = "2"
