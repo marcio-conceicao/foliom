@@ -68,6 +68,13 @@ blake3 = "1.5"
 # Plan 02-02: journal date formatting (LNK-05) + `now_local` for the
 # `/api/journals/today` redirect.
 time = { workspace = true }
+# Plan 04-01: filesystem watcher (SNC-03 + SNC-04).
+# Pinned to stable versions — notify 9.0.0-rc.4 and debouncer-full 0.8.0-rc.2
+# are pre-releases; "=" prefix prevents accidental RC upgrade (T-04-SC).
+notify = "=6.1.1"
+notify-debouncer-full = "=0.3.2"
+# tokio-stream: BroadcastStream adapter for broadcast::Receiver → Stream for SSE.
+tokio-stream = { version = "0.1", features = ["sync"] }
 # Plan 02-08: bench-gen seeds ChaCha8Rng for deterministic corpus output;
 # bench-rss reads RSS via sysinfo (pinned `=0.30.13` at workspace level
 # for A4 unit-drift mitigation — process.memory() returns bytes only on

@@ -20,10 +20,10 @@ publish = false
 #   - open: Byron (sebk on crates.io)
 #   - time: time-rs org
 [workspace.dependencies]
-axum = "0.7"
+axum = { version = "0.7", features = ["tokio"] }
 tower = "0.5"
 tower-http = { version = "0.6", features = ["compression-full", "trace"] }
-tokio = { version = "1.40", features = ["macros", "rt", "signal", "net"] }
+tokio = { version = "1.40", features = ["macros", "rt", "signal", "net", "sync"] }
 open = "5"
 time = { version = "0.3", features = ["formatting", "local-offset", "macros"] }
 # Plan 02-07: single-binary distribution. rust-embed compiles `frontend/dist/`
