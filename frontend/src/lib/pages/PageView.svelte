@@ -1,6 +1,10 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import { fetchPage, type PageDetail } from '../api';
   import { currentPage } from '../stores';
+  import Block from '../components/Block.svelte';
+  import PageHeader from '../components/PageHeader.svelte';
+  import { applyZoomFromHash } from '../zoom';
 
   interface Params { name: string }
   let { params }: { params: Params } = $props();
@@ -13,9 +17,12 @@
     detail = null;
     error = null;
     fetchPage(name)
-      .then((d) => {
+      .then(async (d) => {
         detail = d;
         currentPage.set(d);
+        // After the block tree renders, honor any `#block=N` deep link.
+        await tick();
+        applyZoomFromHash();
       })
       .catch((e: unknown) => {
         error = e instanceof Error ? e.message : String(e);
@@ -23,18 +30,24 @@
   });
 </script>
 
-<section>
-  <h1>Página: {params.name}</h1>
+<section class="page">
   {#if error}
-    <p class="error">Erro ao carregar: {error}</p>
+    <div class="error">Erro ao carregar: {error}</div>
   {:else if detail === null}
-    <p>Carregando…</p>
+    <div class="loading">Carregando…</div>
   {:else}
-    <pre>{JSON.stringify(detail, null, 2)}</pre>
+    <PageHeader
+      name={detail.name}
+      isJournal={detail.isJournal}
+      formattedTitle={detail.formattedTitle}
+    />
+    {#each detail.blocks as block (block.id)}
+      <Block {...block} />
+    {/each}
   {/if}
 </section>
 
 <style>
   .error { color: #c33; }
-  pre { font-family: ui-monospace, monospace; font-size: 0.85rem; overflow: auto; }
+  .loading { opacity: 0.6; }
 </style>

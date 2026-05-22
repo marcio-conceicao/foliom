@@ -1,0 +1,124 @@
+/* frontend/src/styles/blocks.css
+ *
+ * Block tree visuals — bullet chrome, indentation guides (UI-03), chip
+ * styling for page-link + tag + composite-tag. Theming uses CSS variables
+ * from global.css so dark/light/auto all work without component logic.
+ *
+ * NOTE on unresolved page styling: 02-CONTEXT §Specifics calls for
+ * unresolved `[[link]]` chips to render italic + dim. Phase 2 plan 02-04
+ * marks ALL `.page-link` neutrally — the unresolved set is loaded in
+ * plan 02-05 (sidebarPages). Style toggle (`.page-link.unresolved`)
+ * will be added there.
+ */
+
+.block {
+  display: grid;
+  grid-template-columns: 1.25rem 1fr;
+  gap: 0.25rem;
+  align-items: start;
+  margin: 0.1rem 0;
+}
+
+.fold-toggle {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  color: var(--fg);
+  opacity: 0.55;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  text-align: center;
+}
+.fold-toggle:not(.has-children) {
+  cursor: default;
+  opacity: 0.35;
+}
+.fold-toggle:hover.has-children {
+  opacity: 1;
+}
+
+.content {
+  min-width: 0;
+  word-wrap: break-word;
+}
+.content > :first-child {
+  margin-top: 0;
+}
+.content > :last-child {
+  margin-bottom: 0;
+}
+.content p {
+  margin: 0.15rem 0;
+}
+
+/* UI-03: indentation guides — vertical rule on each .children container */
+.children {
+  border-left: 1px solid var(--guide-color);
+  margin-left: 0.6rem;
+  padding-left: 0.65rem;
+}
+
+/* Chip — [[page]] */
+.page-link {
+  color: var(--link-color);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--link-color);
+  cursor: pointer;
+}
+.page-link:hover {
+  background: var(--tag-bg);
+}
+
+/* Chip — #tag and #[[multi word tag]] */
+.tag {
+  display: inline-block;
+  padding: 0 0.35rem;
+  border-radius: 0.5rem;
+  background: var(--tag-bg);
+  color: var(--tag-fg);
+  font-size: 0.85em;
+  line-height: 1.4;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tag.composite {
+  font-weight: 500;
+}
+.tag:hover {
+  filter: brightness(1.05);
+}
+
+/* Block zoom (LNK-07) — highlight the deep-linked block */
+.block.zoomed {
+  background: var(--tag-bg);
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0 2px var(--link-color) inset;
+}
+
+/* GFM tables */
+.content table {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+.content th,
+.content td {
+  border: 1px solid var(--guide-color);
+  padding: 0.25rem 0.5rem;
+  text-align: left;
+}
+.content thead {
+  background: var(--code-bg);
+}
+
+/* Inline code */
+.content code {
+  background: var(--code-bg);
+  padding: 0.05rem 0.3rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+.content pre code {
+  background: none;
+  padding: 0;
+}

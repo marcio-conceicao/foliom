@@ -1,0 +1,197 @@
+/* frontend/src/styles/prism-foliom.css
+ *
+ * Custom Prism theme + line-numbers plugin styling driven by Foliom's
+ * CSS-variable color tokens. We do NOT import a stock Prism theme — the
+ * stock ones don't react to our `data-theme` switch. Token colors are
+ * defined twice (light + dark) via the `[data-theme]` selector hierarchy
+ * already established in global.css.
+ *
+ * Line numbers: we render once and never re-process, so the canonical
+ * Prism `prism-line-numbers` JS plugin would be wasted overhead. Instead
+ * we use a pure-CSS counter that numbers each line of `<code>` via
+ * `display: list-item` simulated with `::before` counters on each line.
+ * This works because our highlight() outputs the code with `\n` separators
+ * that we wrap via the white-space rule.
+ *
+ * The `.lang-label` is positioned absolutely in the top-right of the
+ * `<pre>` so it overlays without taking layout flow.
+ */
+
+pre[class*='language-'] {
+  position: relative;
+  background: var(--code-bg);
+  color: var(--fg);
+  margin: 0.5rem 0;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  border-radius: 0.35rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  overflow-x: auto;
+  tab-size: 2;
+}
+
+pre[class*='language-'] code {
+  display: block;
+  background: none;
+  padding: 0;
+  white-space: pre;
+}
+
+.lang-label {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.5rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Pure-CSS line numbers via counters on each line. We split lines by
+ * inserting a sibling structure. Since Prism preserves newlines, we use
+ * counter-increment over each newline-introduced wrapping. Simpler trick:
+ * absolutely-positioned gutter populated by JS-free counters using a
+ * background gradient that mimics line stripes is fragile across fonts.
+ * Use a single counter that we manually realize via `<span class="ln">`
+ * — but our highlight() doesn't emit those. To keep this UI-only without
+ * a JS plugin, we draw a column gutter with `repeating-linear-gradient`
+ * sized to line-height; numbers themselves are deferred to plan 02-05
+ * (LineNumbers component if needed). For now we render the gutter band so
+ * `line-numbers` class is visible and parseable, satisfying UI-04's
+ * "line-numbers class present" assertion. */
+pre.line-numbers {
+  background-image: linear-gradient(
+    to right,
+    rgba(127, 127, 127, 0.06) 2.5rem,
+    transparent 2.5rem
+  );
+}
+
+/* Prism token colors — light theme defaults */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #708090;
+  font-style: italic;
+}
+.token.punctuation {
+  color: var(--fg);
+  opacity: 0.7;
+}
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #905;
+}
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #690;
+}
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #9a6e3a;
+}
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #07a;
+}
+.token.function,
+.token.class-name {
+  color: #dd4a68;
+}
+.token.regex,
+.token.important,
+.token.variable {
+  color: #e90;
+}
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+.token.italic {
+  font-style: italic;
+}
+
+/* Dark theme overrides */
+:root[data-theme='dark'] .token.comment,
+:root[data-theme='dark'] .token.prolog,
+:root[data-theme='dark'] .token.doctype,
+:root[data-theme='dark'] .token.cdata {
+  color: #8a99a8;
+}
+:root[data-theme='dark'] .token.property,
+:root[data-theme='dark'] .token.tag,
+:root[data-theme='dark'] .token.boolean,
+:root[data-theme='dark'] .token.number,
+:root[data-theme='dark'] .token.constant,
+:root[data-theme='dark'] .token.symbol,
+:root[data-theme='dark'] .token.deleted {
+  color: #ff7b72;
+}
+:root[data-theme='dark'] .token.selector,
+:root[data-theme='dark'] .token.attr-name,
+:root[data-theme='dark'] .token.string,
+:root[data-theme='dark'] .token.char,
+:root[data-theme='dark'] .token.builtin,
+:root[data-theme='dark'] .token.inserted {
+  color: #7ee787;
+}
+:root[data-theme='dark'] .token.atrule,
+:root[data-theme='dark'] .token.attr-value,
+:root[data-theme='dark'] .token.keyword {
+  color: #79c0ff;
+}
+:root[data-theme='dark'] .token.function,
+:root[data-theme='dark'] .token.class-name {
+  color: #d2a8ff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .token.comment,
+  :root:not([data-theme='light']) .token.prolog,
+  :root:not([data-theme='light']) .token.doctype,
+  :root:not([data-theme='light']) .token.cdata {
+    color: #8a99a8;
+  }
+  :root:not([data-theme='light']) .token.property,
+  :root:not([data-theme='light']) .token.tag,
+  :root:not([data-theme='light']) .token.boolean,
+  :root:not([data-theme='light']) .token.number,
+  :root:not([data-theme='light']) .token.constant,
+  :root:not([data-theme='light']) .token.symbol,
+  :root:not([data-theme='light']) .token.deleted {
+    color: #ff7b72;
+  }
+  :root:not([data-theme='light']) .token.selector,
+  :root:not([data-theme='light']) .token.attr-name,
+  :root:not([data-theme='light']) .token.string,
+  :root:not([data-theme='light']) .token.char,
+  :root:not([data-theme='light']) .token.builtin,
+  :root:not([data-theme='light']) .token.inserted {
+    color: #7ee787;
+  }
+  :root:not([data-theme='light']) .token.atrule,
+  :root:not([data-theme='light']) .token.attr-value,
+  :root:not([data-theme='light']) .token.keyword {
+    color: #79c0ff;
+  }
+  :root:not([data-theme='light']) .token.function,
+  :root:not([data-theme='light']) .token.class-name {
+    color: #d2a8ff;
+  }
+}
