@@ -18,7 +18,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::anyhow;
-use tauri::{Manager, WebviewUrl};
+use tauri::WebviewUrl;
 use tauri::webview::WebviewWindowBuilder;
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_store::StoreExt;

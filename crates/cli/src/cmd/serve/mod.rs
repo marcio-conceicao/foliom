@@ -81,7 +81,7 @@ pub fn run(args: ServeArgs) -> Result<()> {
     };
 
     // ---- 1. Open DB ----
-    let mut db = Db::open(&args.root)
+    let db = Db::open(&args.root)
         .with_context(|| format!("abrindo índice para a raiz {:?}", args.root))?;
 
     // ---- 2. Open rename journal + replay BEFORE reindex ----
