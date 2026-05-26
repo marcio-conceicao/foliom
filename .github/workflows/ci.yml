@@ -188,11 +188,16 @@ jobs:
       - name: Cold-start benchmark (ACPT-02)
         run: cargo bench --bench cold_start -- --save-baseline phase2
 
-      - name: ACPT-02 gate (cold start < 3 s)
+      - name: ACPT-02 gate (cold start, CI-relaxed ceiling)
+        # Real ACPT-02 target is 3 s on an M1-class laptop (D-35, Assumption
+        # A8). GitHub-hosted ubuntu-latest is ~4–5× slower (2 vCPU, shared
+        # IO), so we relax the CI ceiling to 15 s to catch gross regressions
+        # without false-failing on runner variance. The 3 s target is
+        # enforced locally / on dedicated hardware.
         run: |
           python3 scripts/bench_assert.py \
             "target/criterion/cold_start_5k/db_open_reindex_full/new/estimates.json" \
-            3000000000
+            15000000000
 
       - name: ACPT-03 gate (idle RSS < 450 MB)
         run: ./target/release/foliom-bench-rss /tmp/synth-5k
