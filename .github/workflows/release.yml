@@ -28,6 +28,14 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
 
+    # Lift secrets to job-level env so step `if:` conditions can gate on them.
+    # `secrets.*` is not available in step-level `if:` expressions — referencing
+    # it there invalidates the entire workflow (GitHub rejects parsing, every
+    # push creates a 0-job failed run, tag pushes never build).
+    env:
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -53,7 +61,7 @@ jobs:
       # macOS: import signing certificate into an ephemeral keychain.
       # Skipped when APPLE_CERTIFICATE secret is absent (forks, unsigned CI runs).
       - name: Import Apple signing certificate
-        if: runner.os == 'macOS' && secrets.APPLE_CERTIFICATE != ''
+        if: runner.os == 'macOS' && env.APPLE_CERTIFICATE != ''
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -75,7 +83,7 @@ jobs:
       # Windows: import signing certificate from base64-encoded PFX.
       # Skipped when WINDOWS_CERTIFICATE secret is absent (forks, unsigned CI runs).
       - name: Import Windows certificate
-        if: runner.os == 'Windows' && secrets.WINDOWS_CERTIFICATE != ''
+        if: runner.os == 'Windows' && env.WINDOWS_CERTIFICATE != ''
         env:
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
