@@ -78,9 +78,12 @@ jobs:
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         with:
-          tagName: v__VERSION__
-          releaseName: "Foliom v__VERSION__"
-          releaseDraft: true
+          # Use the actual git tag that triggered the workflow, not the
+          # app version from tauri.conf.json. Avoids drift between trigger
+          # tag and release tag.
+          tagName: ${{ github.ref_name }}
+          releaseName: "Foliom ${{ github.ref_name }}"
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
 
