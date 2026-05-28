@@ -17,23 +17,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # macOS universal binary (arm64 + x86_64 lipo'd by Tauri)
-          - platform: macos-latest
-            args: "--target universal-apple-darwin"
-            rust_targets: "aarch64-apple-darwin,x86_64-apple-darwin"
-          # Windows x64
+          # Windows x64 (macOS leg disabled — Windows-only releases for now)
           - platform: windows-latest
             args: "--target x86_64-pc-windows-msvc"
             rust_targets: "x86_64-pc-windows-msvc"
 
     runs-on: ${{ matrix.platform }}
 
-    # Lift secrets to job-level env so step `if:` conditions can gate on them.
-    # `secrets.*` is not available in step-level `if:` expressions — referencing
-    # it there invalidates the entire workflow (GitHub rejects parsing, every
-    # push creates a 0-job failed run, tag pushes never build).
+    # Lift secret to job-level env so step `if:` can gate on it.
+    # `secrets.*` is not allowed in step-level `if:` expressions.
     env:
-      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
       WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
 
     steps:
@@ -58,34 +51,11 @@ jobs:
           workspaces: ". -> target"
           shared-key: phase5-${{ matrix.platform }}
 
-      # macOS: import signing certificate into an ephemeral keychain.
-      # Skipped when APPLE_CERTIFICATE secret is absent (forks, unsigned CI runs).
-      - name: Import Apple signing certificate
-        if: runner.os == 'macOS' && env.APPLE_CERTIFICATE != ''
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-        shell: bash
-        run: |
-          CERT_PATH=$RUNNER_TEMP/certificate.p12
-          KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain-db
-          KEYCHAIN_PASSWORD=$(openssl rand -base64 24)
-          echo "$APPLE_CERTIFICATE" | base64 --decode > "$CERT_PATH"
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security default-keychain -s "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security import "$CERT_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" \
-            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-          security set-key-partition-list -S apple-tool:,apple: \
-            -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-
       # Windows: import signing certificate from base64-encoded PFX.
       # Skipped when WINDOWS_CERTIFICATE secret is absent (forks, unsigned CI runs).
       - name: Import Windows certificate
-        if: runner.os == 'Windows' && env.WINDOWS_CERTIFICATE != ''
+        if: env.WINDOWS_CERTIFICATE != ''
         env:
-          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         shell: pwsh
         run: |
@@ -99,21 +69,12 @@ jobs:
               -Force -AsPlainText)
 
       # Build and upload to GitHub Release (draft).
-      # All signing env vars are passed unconditionally; tauri-action treats
+      # Signing env vars are passed unconditionally; tauri-action treats
       # absent (empty string) secrets as "no signing" and produces unsigned artifacts.
-      # NOTE: APPLE_PASSWORD is the correct secret name for notarization (verified: v2.tauri.app/distribute/sign/macos)
       - name: Build and upload release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # macOS signing + notarization (no-op when secrets are absent)
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # Windows signing (no-op when secrets are absent)
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         with:
@@ -124,21 +85,7 @@ jobs:
           args: ${{ matrix.args }}
 
       # Footprint gate: installer size must be < 30 MB (DSK-03)
-      # macOS: delegates to scripts/footprint_check.sh (reusable bash script)
-      - name: Footprint gate — DMG size < 30 MB (macOS)
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          DMG=$(ls target/universal-apple-darwin/release/bundle/dmg/*.dmg 2>/dev/null | head -1)
-          if [ -z "$DMG" ]; then
-            echo "::error::No .dmg found — tauri-action may have failed"
-            exit 1
-          fi
-          bash scripts/footprint_check.sh "$DMG" 30
-
-      # Windows: inline PowerShell (footprint_check.sh is bash-only)
       - name: Footprint gate — Installer size < 30 MB (Windows)
-        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $installer = Get-ChildItem -Path "target\x86_64-pc-windows-msvc\release\bundle" `
@@ -155,23 +102,3 @@ jobs:
             exit 1
           }
           Write-Host "OK: installer size within budget"
-
-      # Footprint gate: idle RSS < 150 MB (DSK-03)
-      # Measures the foliom serve process only (axum + indexer + watcher).
-      # The Tauri WebView renderer (WebView2.exe / com.apple.WebKit.WebContent) runs in a
-      # separate OS process and is NOT captured — intentional for v1 (see PERF-BASELINE.md).
-      # Windows is skipped: foliom-bench-rss uses /proc/self/status which is Linux/macOS only.
-      - name: Footprint gate — Idle RSS < 150 MB
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          # Build the bench-rss binary (separate bin target; tauri-action doesn't build it).
-          cargo build --release --bin foliom-bench-rss --locked
-
-          # Use the synthetic fixture — always present, starts in < 1 s (12 files).
-          CORPUS_PATH="crates/core/tests/fixtures/logseq-synthetic"
-
-          # Override ceiling to 150 MB (DSK-03) and point at the release binary.
-          FOLIOM_BENCH_CEILING_MB=150 \
-          FOLIOM_BENCH_FOLIOM="target/release/foliom" \
-            ./target/release/foliom-bench-rss "$CORPUS_PATH"
